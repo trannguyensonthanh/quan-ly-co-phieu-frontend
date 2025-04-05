@@ -15,7 +15,9 @@ import {
   Clock,
   FileBarChart,
   Database,
-  UserPlus
+  UserPlus,
+  Wallet,
+  Landmark
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
@@ -35,7 +37,7 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
     },
     {
       title: 'Danh sách cổ phiếu',
-      icon: <LineChart className="h-5 w-5" />,
+      icon: <Landmark className="h-5 w-5" />,
       path: '/stocks',
     },
     {
@@ -84,6 +86,21 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
       path: '/admin/users',
     }] : []),
     ...(isEmployee ? [{
+      title: 'Quản lý nhà đầu tư',
+      icon: <User className="h-5 w-5" />,
+      path: '/admin/investors',
+    }] : []),
+    ...(isEmployee ? [{
+      title: 'Quản lý cổ phiếu',
+      icon: <LineChart className="h-5 w-5" />,
+      path: '/admin/stocks',
+    }] : []),
+    ...(isEmployee ? [{
+      title: 'Quản lý tiền',
+      icon: <Wallet className="h-5 w-5" />,
+      path: '/admin/funds',
+    }] : []),
+    ...(isEmployee ? [{
       title: 'Sao lưu dữ liệu',
       icon: <Database className="h-5 w-5" />,
       path: '/admin/backup',
@@ -93,16 +110,21 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
       icon: <User className="h-5 w-5" />,
       path: '/profile',
     },
+    {
+      title: 'Cài đặt',
+      icon: <Settings className="h-5 w-5" />,
+      path: '/settings',
+    },
   ];
 
   return (
     <aside
       className={cn(
-        "fixed inset-y-0 left-0 z-20 flex flex-col bg-white border-r border-gray-200 pb-4 transition-all duration-300 ease-in-out",
+        "fixed inset-y-0 left-0 z-20 flex flex-col bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 pb-4 transition-all duration-300 ease-in-out",
         isOpen ? "w-64" : "w-0 md:w-20"
       )}
     >
-      <div className="flex items-center justify-center h-16 border-b border-gray-200">
+      <div className="flex items-center justify-center h-16 border-b border-gray-200 dark:border-gray-700">
         {isOpen ? (
           <span className="text-xl font-bold text-primary">Hanoi Stock</span>
         ) : (
@@ -118,7 +140,7 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
                 to={item.path}
                 className={cn(
                   "flex items-center p-2 rounded-md transition-colors duration-200",
-                  location.pathname === item.path ? "bg-primary/10 text-primary" : "text-gray-600 hover:bg-gray-100",
+                  location.pathname === item.path ? "bg-primary/10 text-primary dark:bg-primary/20" : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700",
                   !isOpen && "justify-center md:justify-center"
                 )}
               >
@@ -130,9 +152,9 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
         </ul>
       </nav>
       
-      <div className="border-t border-gray-200 pt-4 px-4">
+      <div className="border-t border-gray-200 dark:border-gray-700 pt-4 px-4">
         <div className={cn(
-          "text-xs text-gray-500",
+          "text-xs text-gray-500 dark:text-gray-400",
           !isOpen && "hidden md:text-center"
         )}>
           {isOpen ? (

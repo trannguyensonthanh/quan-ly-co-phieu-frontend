@@ -31,6 +31,7 @@ import InvestorManagementPage from "./pages/InvestorManagementPage";
 import StockManagementPage from "./pages/StockManagementPage";
 import FundManagementPage from "./pages/FundManagementPage";
 import DatabaseBackupPage from "./pages/DatabaseBackupPage";
+import SettingsPage from "./pages/SettingsPage";
 
 // Layout
 import MainLayout from "./components/layout/MainLayout";
@@ -60,6 +61,7 @@ const App = () => (
                     <Route path="/stocks/:stockCode" element={<StockDetailPage />} />
                     <Route path="/price-board" element={<PriceBoardPage />} />
                     <Route path="/profile" element={<ProfilePage />} />
+                    <Route path="/settings" element={<SettingsPage />} />
                     <Route path="/balance" element={<BalancePage />} />
                     <Route path="/order-history" element={<OrderHistoryPage />} />
                     <Route path="/transaction-history" element={<MatchedOrdersPage />} />
