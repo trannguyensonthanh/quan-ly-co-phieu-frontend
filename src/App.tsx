@@ -14,6 +14,7 @@ import StockDetailPage from "./pages/StockDetailPage";
 import TradingPage from "./pages/TradingPage";
 import ProfilePage from "./pages/ProfilePage";
 import PortfolioPage from "./pages/PortfolioPage";
+import PriceBoardPage from "./pages/PriceBoardPage";
 import NotFound from "./pages/NotFound";
 
 // Layout
@@ -38,8 +39,24 @@ const App = () => (
             <Route path="/stocks" element={<StocksPage />} />
             <Route path="/stocks/:stockCode" element={<StockDetailPage />} />
             <Route path="/trading" element={<TradingPage />} />
+            <Route path="/price-board" element={<PriceBoardPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/portfolio" element={<PortfolioPage />} />
+            
+            {/* Update section */}
+            <Route path="/update/stocks" element={<div>Cập nhật cổ phiếu (Coming Soon)</div>} />
+            <Route path="/update/investors" element={<div>Cập nhật nhà đầu tư (Coming Soon)</div>} />
+            <Route path="/balance" element={<div>Tra cứu số dư (Coming Soon)</div>} />
+            <Route path="/order-history" element={<div>Sao kê giao dịch lệnh (Coming Soon)</div>} />
+            <Route path="/transaction-history" element={<div>Sao kê lệnh khớp (Coming Soon)</div>} />
+            
+            {/* Reports section */}
+            <Route path="/reports/stock-orders" element={<div>Sao kê lệnh đặt (Coming Soon)</div>} />
+            <Route path="/reports/money-transactions" element={<div>Sao kê giao dịch tiền (Coming Soon)</div>} />
+            
+            {/* Admin section */}
+            <Route path="/admin/users" element={<div>Quản lý tài khoản (Coming Soon)</div>} />
+            <Route path="/admin/backup" element={<div>Sao lưu dữ liệu (Coming Soon)</div>} />
           </Route>
           
           {/* 404 page */}

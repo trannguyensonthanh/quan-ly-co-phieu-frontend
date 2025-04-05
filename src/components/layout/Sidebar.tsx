@@ -1,7 +1,20 @@
 
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { BarChart, Home, LineChart, PieChart, ShoppingBag, User } from 'lucide-react';
+import { 
+  BarChart, 
+  Home, 
+  LineChart, 
+  PieChart, 
+  ShoppingBag, 
+  User, 
+  FileText, 
+  Settings,
+  DollarSign,
+  CreditCard,
+  Clock,
+  FileBarChart
+} from 'lucide-react';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -10,6 +23,10 @@ interface SidebarProps {
 const Sidebar = ({ isOpen }: SidebarProps) => {
   const location = useLocation();
   
+  // Will be replaced with actual authentication status
+  const isAdmin = true; // For demo purposes, this will be replaced with actual auth
+  const isInvestor = false; // For demo purposes
+
   const menuItems = [
     {
       title: 'Trang chủ',
@@ -18,19 +35,54 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
     },
     {
       title: 'Danh sách cổ phiếu',
-      icon: <BarChart className="h-5 w-5" />,
+      icon: <LineChart className="h-5 w-5" />,
       path: '/stocks',
     },
     {
+      title: 'Bảng giá',
+      icon: <BarChart className="h-5 w-5" />,
+      path: '/price-board',
+    },
+    ...(isInvestor ? [{
       title: 'Danh mục đầu tư',
       icon: <PieChart className="h-5 w-5" />,
       path: '/portfolio',
-    },
-    {
+    }] : []),
+    ...(isInvestor ? [{
       title: 'Đặt lệnh',
       icon: <ShoppingBag className="h-5 w-5" />,
       path: '/trading',
+    }] : []),
+    {
+      title: 'Tra cứu số dư',
+      icon: <DollarSign className="h-5 w-5" />,
+      path: '/balance',
     },
+    {
+      title: 'Sao kê giao dịch lệnh',
+      icon: <FileText className="h-5 w-5" />,
+      path: '/order-history',
+    },
+    {
+      title: 'Sao kê lệnh khớp',
+      icon: <CreditCard className="h-5 w-5" />,
+      path: '/transaction-history',
+    },
+    {
+      title: 'Sao kê lệnh đặt',
+      icon: <Clock className="h-5 w-5" />,
+      path: '/reports/stock-orders',
+    },
+    {
+      title: 'Sao kê giao dịch tiền',
+      icon: <FileBarChart className="h-5 w-5" />,
+      path: '/reports/money-transactions',
+    },
+    ...(isAdmin ? [{
+      title: 'Quản lý tài khoản',
+      icon: <Settings className="h-5 w-5" />,
+      path: '/admin/users',
+    }] : []),
     {
       title: 'Tài khoản',
       icon: <User className="h-5 w-5" />,

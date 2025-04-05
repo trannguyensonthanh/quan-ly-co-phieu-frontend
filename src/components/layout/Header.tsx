@@ -11,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import MainNavigation from './MainNavigation';
 
 interface HeaderProps {
   toggleSidebar: () => void;
@@ -20,7 +21,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
       <div className="container mx-auto px-4 flex items-center justify-between h-16">
-        <div className="flex items-center">
+        <div className="flex items-center gap-2">
           <Button 
             variant="ghost" 
             className="mr-2 md:hidden" 
@@ -75,6 +76,11 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
+      </div>
+      
+      {/* Navigation bar */}
+      <div className="container mx-auto px-4 py-1 border-t border-gray-100 hidden md:block">
+        <MainNavigation />
       </div>
     </header>
   );

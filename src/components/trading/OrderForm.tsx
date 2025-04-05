@@ -25,16 +25,22 @@ import { mockBankAccounts, mockStocks } from '@/utils/mock-data';
 import { formatCurrency } from '@/utils/format';
 import { OrderMethod, OrderType } from '@/utils/types';
 import { toast } from 'sonner';
+import { Separator } from '@/components/ui/separator';
 
-const OrderForm = () => {
+interface OrderFormProps {
+  initialOrderType?: OrderType;
+}
+
+const OrderForm = ({ initialOrderType = 'M' }: OrderFormProps) => {
   const location = useLocation();
   const preselectedStockCode = location.state?.stockCode;
   
-  const [orderType, setOrderType] = useState<OrderType>('M');
+  const [orderType, setOrderType] = useState<OrderType>(initialOrderType);
   const [stockCode, setStockCode] = useState<string>(preselectedStockCode || '');
   const [orderMethod, setOrderMethod] = useState<OrderMethod>('LO');
   const [quantity, setQuantity] = useState<number>(0);
   const [price, setPrice] = useState<number>(0);
+  const [password, setPassword] = useState<string>('');
   const [account, setAccount] = useState<string>('TK001');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -51,12 +57,26 @@ const OrderForm = () => {
   
   const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value);
-    setQuantity(isNaN(value) ? 0 : value);
+    const sanitizedValue = isNaN(value) ? 0 : value;
+    
+    // Check if multiple of 100
+    if (sanitizedValue % 100 !== 0 && sanitizedValue !== 0) {
+      toast.warning('Khối lượng phải là bội số của 100');
+    }
+    
+    setQuantity(sanitizedValue);
   };
   
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value);
-    setPrice(isNaN(value) ? 0 : value);
+    const sanitizedValue = isNaN(value) ? 0 : value;
+    
+    // Check if multiple of 100
+    if (sanitizedValue % 100 !== 0 && sanitizedValue !== 0) {
+      toast.warning('Giá phải là bội số của 100');
+    }
+    
+    setPrice(sanitizedValue);
   };
   
   const handleSubmit = (e: React.FormEvent) => {
@@ -72,8 +92,23 @@ const OrderForm = () => {
       return;
     }
     
+    if (quantity % 100 !== 0) {
+      toast.error('Khối lượng phải là bội số của 100');
+      return;
+    }
+    
     if (orderMethod === 'LO' && price <= 0) {
       toast.error('Giá phải lớn hơn 0');
+      return;
+    }
+    
+    if (orderMethod === 'LO' && price % 100 !== 0) {
+      toast.error('Giá phải là bội số của 100');
+      return;
+    }
+    
+    if (!password) {
+      toast.error('Vui lòng nhập mật khẩu giao dịch');
       return;
     }
     
@@ -99,6 +134,16 @@ const OrderForm = () => {
       }
     }
     
+    // For sell orders, validate the ownership
+    if (orderType === 'B') {
+      // This would be replaced with actual ownership verification
+      const ownedStocks = 500; // Just an example
+      if (quantity > ownedStocks) {
+        toast.error(`Số lượng bán (${quantity}) vượt quá số lượng sở hữu (${ownedStocks})`);
+        return;
+      }
+    }
+    
     setIsSubmitting(true);
     
     // Simulate API call
@@ -108,6 +153,7 @@ const OrderForm = () => {
       
       // Reset form after successful submission
       setQuantity(0);
+      setPassword('');
     }, 1500);
   };
   
@@ -120,24 +166,31 @@ const OrderForm = () => {
       <Tabs defaultValue="order">
         <CardHeader>
           <div className="flex justify-between items-center">
-            <CardTitle>Đặt lệnh</CardTitle>
+            <CardTitle>{orderType === 'M' ? 'Đặt lệnh mua' : 'Đặt lệnh bán'}</CardTitle>
             <TabsList>
               <TabsTrigger value="order">Đặt lệnh</TabsTrigger>
               <TabsTrigger value="info">Thông tin</TabsTrigger>
             </TabsList>
           </div>
           <CardDescription>
-            Đặt lệnh mua/bán cổ phiếu trên sàn Hà Nội
+            Đặt lệnh {orderType === 'M' ? 'mua' : 'bán'} cổ phiếu trên sàn Hà Nội
           </CardDescription>
         </CardHeader>
         
         <TabsContent value="order">
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Account balance information */}
+              {accountInfo && (
+                <div className="mb-4 p-3 bg-blue-50 rounded-md">
+                  <div className="text-sm font-medium text-blue-800">Số dư tài khoản:</div>
+                  <div className="text-lg font-bold text-blue-900">{formatCurrency(accountInfo.balance)}</div>
+                </div>
+              )}
+              
               <div className="space-y-2">
                 <Label>Loại lệnh</Label>
                 <RadioGroup 
-                  defaultValue="M" 
                   value={orderType}
                   onValueChange={(value) => setOrderType(value as OrderType)}
                   className="flex"
@@ -153,6 +206,7 @@ const OrderForm = () => {
                 </RadioGroup>
               </div>
 
+              {/* Stock selection */}
               <div className="space-y-2">
                 <Label htmlFor="stockCode">Mã cổ phiếu</Label>
                 <Select 
@@ -171,6 +225,24 @@ const OrderForm = () => {
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* Stock price information */}
+              {selectedStock && (
+                <div className="grid grid-cols-3 gap-2 p-2 bg-gray-50 rounded-md">
+                  <div className="p-1">
+                    <div className="text-xs text-muted-foreground">Giá trần</div>
+                    <div className="text-sm font-semibold text-purple-600">{formatCurrency(selectedStock.ceilingPrice)}</div>
+                  </div>
+                  <div className="p-1">
+                    <div className="text-xs text-muted-foreground">Giá TC</div>
+                    <div className="text-sm font-semibold text-amber-500">{formatCurrency(selectedStock.referencePrice)}</div>
+                  </div>
+                  <div className="p-1">
+                    <div className="text-xs text-muted-foreground">Giá sàn</div>
+                    <div className="text-sm font-semibold text-sky-600">{formatCurrency(selectedStock.floorPrice)}</div>
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="orderMethod">Phương thức</Label>
@@ -198,8 +270,13 @@ const OrderForm = () => {
                   step="100"
                   value={quantity || ''}
                   onChange={handleQuantityChange}
-                  placeholder="Nhập khối lượng cổ phiếu"
+                  placeholder="Nhập khối lượng cổ phiếu (bội số của 100)"
                 />
+                {orderType === 'B' && (
+                  <div className="text-xs text-muted-foreground">
+                    Số lượng sở hữu: 500 cổ phiếu {stockCode}
+                  </div>
+                )}
               </div>
 
               {orderMethod === 'LO' && (
@@ -213,7 +290,7 @@ const OrderForm = () => {
                     step="100"
                     value={price || ''}
                     onChange={handlePriceChange}
-                    placeholder="Nhập giá đặt"
+                    placeholder="Nhập giá đặt (bội số của 100)"
                   />
                   {selectedStock && (
                     <div className="text-xs text-muted-foreground">
@@ -242,8 +319,21 @@ const OrderForm = () => {
                 </Select>
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="password">Mật khẩu giao dịch</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Nhập mật khẩu giao dịch của bạn"
+                />
+              </div>
+
+              <Separator className="my-4" />
+
               {quantity > 0 && price > 0 && (
-                <div className="border-t pt-4">
+                <div className="border rounded-md p-3 bg-gray-50">
                   <div className="flex justify-between items-center">
                     <span className="font-medium">Tổng giá trị:</span>
                     <span className="font-bold text-lg">
@@ -291,6 +381,16 @@ const OrderForm = () => {
                 <ul className="list-disc pl-5 space-y-1 mt-2">
                   <li>Ưu tiên về giá: Lệnh mua giá cao hơn được ưu tiên, lệnh bán giá thấp hơn được ưu tiên.</li>
                   <li>Ưu tiên về thời gian: Khi cùng giá, lệnh vào trước được ưu tiên.</li>
+                </ul>
+              </div>
+              <div className="text-sm text-muted-foreground">
+                <p><strong>Quy định đặt lệnh:</strong></p>
+                <ul className="list-disc pl-5 space-y-1 mt-2">
+                  <li>Khối lượng đặt lệnh phải là bội số của 100.</li>
+                  <li>Giá đặt lệnh phải là bội số của 100.</li>
+                  <li>Giá đặt lệnh phải nằm trong biên độ giá sàn - giá trần.</li>
+                  <li>Đặt lệnh mua: Phải có đủ tiền trong tài khoản.</li>
+                  <li>Đặt lệnh bán: Phải có đủ cổ phiếu trong danh mục.</li>
                 </ul>
               </div>
             </div>
