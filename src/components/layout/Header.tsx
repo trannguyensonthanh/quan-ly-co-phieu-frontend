@@ -9,7 +9,7 @@ import { UserNav } from "@/components/ui/user-nav";
 import { NotificationCenter } from "@/components/ui/notification-center";
 import { useNotifications } from "@/context/NotificationContext";
 import { cn } from "@/lib/utils";
-import { useMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export type HeaderProps = {
   toggleSidebar: () => void;
@@ -20,7 +20,7 @@ const Header = ({ toggleSidebar, isSidebarOpen }: HeaderProps) => {
   const { isAuthenticated, logout, user } = useAuth();
   const { notifications, markAsRead, clearAll } = useNotifications();
   const navigate = useNavigate();
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
   const [scrolled, setScrolled] = useState(false);
 
   const handleLogout = () => {

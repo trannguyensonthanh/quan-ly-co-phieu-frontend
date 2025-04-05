@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/context/AuthContext";
 import { NotificationProvider } from "@/context/NotificationContext";
+import { ThemeProvider } from "@/context/ThemeContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
 // Pages
@@ -39,58 +40,60 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <BrowserRouter>
-      <AuthProvider>
-        <NotificationProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <Routes>
-              {/* Auth pages */}
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-              
-              {/* Protected routes for all authenticated users */}
-              <Route element={<ProtectedRoute />}>
-                <Route element={<MainLayout />}>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/stocks" element={<StocksPage />} />
-                  <Route path="/stocks/:stockCode" element={<StockDetailPage />} />
-                  <Route path="/price-board" element={<PriceBoardPage />} />
-                  <Route path="/profile" element={<ProfilePage />} />
-                  <Route path="/balance" element={<BalancePage />} />
-                  <Route path="/order-history" element={<OrderHistoryPage />} />
-                  <Route path="/transaction-history" element={<MatchedOrdersPage />} />
-                  <Route path="/reports/stock-orders" element={<StockOrderReportPage />} />
-                  <Route path="/reports/money-transactions" element={<MoneyTransactionReportPage />} />
+      <ThemeProvider defaultTheme="light">
+        <AuthProvider>
+          <NotificationProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <Routes>
+                {/* Auth pages */}
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                
+                {/* Protected routes for all authenticated users */}
+                <Route element={<ProtectedRoute />}>
+                  <Route element={<MainLayout />}>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/stocks" element={<StocksPage />} />
+                    <Route path="/stocks/:stockCode" element={<StockDetailPage />} />
+                    <Route path="/price-board" element={<PriceBoardPage />} />
+                    <Route path="/profile" element={<ProfilePage />} />
+                    <Route path="/balance" element={<BalancePage />} />
+                    <Route path="/order-history" element={<OrderHistoryPage />} />
+                    <Route path="/transaction-history" element={<MatchedOrdersPage />} />
+                    <Route path="/reports/stock-orders" element={<StockOrderReportPage />} />
+                    <Route path="/reports/money-transactions" element={<MoneyTransactionReportPage />} />
+                  </Route>
                 </Route>
-              </Route>
-              
-              {/* Protected routes for investor users only */}
-              <Route element={<ProtectedRoute allowedRoles={['investor']} />}>
-                <Route element={<MainLayout />}>
-                  <Route path="/portfolio" element={<PortfolioPage />} />
-                  <Route path="/trading" element={<TradingPage />} />
+                
+                {/* Protected routes for investor users only */}
+                <Route element={<ProtectedRoute allowedRoles={['investor']} />}>
+                  <Route element={<MainLayout />}>
+                    <Route path="/portfolio" element={<PortfolioPage />} />
+                    <Route path="/trading" element={<TradingPage />} />
+                  </Route>
                 </Route>
-              </Route>
-              
-              {/* Protected routes for employee users only */}
-              <Route element={<ProtectedRoute allowedRoles={['employee']} />}>
-                <Route element={<MainLayout />}>
-                  <Route path="/admin/users" element={<UserManagementPage />} />
-                  <Route path="/admin/investors" element={<InvestorManagementPage />} />
-                  <Route path="/admin/stocks" element={<StockManagementPage />} />
-                  <Route path="/admin/funds" element={<FundManagementPage />} />
-                  <Route path="/admin/backup" element={<DatabaseBackupPage />} />
+                
+                {/* Protected routes for employee users only */}
+                <Route element={<ProtectedRoute allowedRoles={['employee']} />}>
+                  <Route element={<MainLayout />}>
+                    <Route path="/admin/users" element={<UserManagementPage />} />
+                    <Route path="/admin/investors" element={<InvestorManagementPage />} />
+                    <Route path="/admin/stocks" element={<StockManagementPage />} />
+                    <Route path="/admin/funds" element={<FundManagementPage />} />
+                    <Route path="/admin/backup" element={<DatabaseBackupPage />} />
+                  </Route>
                 </Route>
-              </Route>
-              
-              {/* 404 page */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </TooltipProvider>
-        </NotificationProvider>
-      </AuthProvider>
+                
+                {/* 404 page */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </TooltipProvider>
+          </NotificationProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </BrowserRouter>
   </QueryClientProvider>
 );

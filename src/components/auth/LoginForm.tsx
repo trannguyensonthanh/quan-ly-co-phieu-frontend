@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -7,7 +6,6 @@ import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { authenticateUser } from "@/utils/mock-data";
 import { useAuth } from "@/context/AuthContext";
 import { AlertCircle, Eye, EyeOff, KeyRound, User } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -36,13 +34,12 @@ const LoginForm = () => {
 
   const onSubmit = async (data: LoginFormValues) => {
     try {
-      const user = authenticateUser(data.username, data.password);
+      const success = await login(data.username, data.password);
       
-      if (user) {
-        login(user);
+      if (success) {
         toast({
           title: "Đăng nhập thành công",
-          description: `Chào mừng ${user.fullName}!`,
+          description: "Chào mừng bạn trở lại!",
         });
         navigate("/");
       } else {

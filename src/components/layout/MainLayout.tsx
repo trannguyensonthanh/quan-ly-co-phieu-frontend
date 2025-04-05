@@ -14,7 +14,7 @@ const MainLayout = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header toggleSidebar={toggleSidebar} />
+      <Header toggleSidebar={toggleSidebar} isSidebarOpen={sidebarOpen} />
       <Sidebar isOpen={sidebarOpen} />
       
       <main 
