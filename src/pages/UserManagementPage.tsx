@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -23,6 +22,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Badge } from "@/components/ui/badge";
+import { User } from "@/utils/types";
 
 const userSchema = z.object({
   username: z.string().min(3, "Tên đăng nhập phải có ít nhất 3 ký tự"),
@@ -61,7 +61,6 @@ const UserManagementPage = () => {
     },
   });
 
-  // Filter users based on active tab
   const filteredUsers = mockUsers.filter(user => {
     if (activeTab === "all") return true;
     if (activeTab === "investors") return user.role === "investor";
@@ -71,7 +70,19 @@ const UserManagementPage = () => {
 
   const onSubmit = (values: UserValues) => {
     try {
-      createUser(values);
+      const userToCreate: Omit<User, 'id'> = {
+        username: values.username,
+        fullName: values.fullName,
+        email: values.email,
+        birthDate: values.birthDate,
+        address: values.address,
+        phone: values.phone,
+        idNumber: values.idNumber,
+        gender: values.gender,
+        role: values.role
+      };
+      
+      createUser(userToCreate);
       toast({
         title: "Tạo tài khoản thành công",
         description: `Đã tạo tài khoản cho ${values.fullName}`,
