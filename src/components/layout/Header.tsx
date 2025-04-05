@@ -1,113 +1,100 @@
 
-import { Link } from 'react-router-dom';
-import { Bell, Menu, Search, User, LogOut } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import MainNavigation from './MainNavigation';
-import { useAuth } from '@/context/AuthContext';
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Link, useNavigate } from "react-router-dom";
+import { Menu, X } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { ModeToggle } from "@/components/ui/mode-toggle";
+import { UserNav } from "@/components/ui/user-nav";
+import { NotificationCenter } from "@/components/ui/notification-center";
+import { useNotifications } from "@/context/NotificationContext";
+import { cn } from "@/lib/utils";
+import { useMobile } from "@/hooks/use-mobile";
 
-interface HeaderProps {
+export type HeaderProps = {
   toggleSidebar: () => void;
-}
+  isSidebarOpen: boolean;
+};
 
-const Header = ({ toggleSidebar }: HeaderProps) => {
-  const { user, logout } = useAuth();
+const Header = ({ toggleSidebar, isSidebarOpen }: HeaderProps) => {
+  const { isAuthenticated, logout, user } = useAuth();
+  const { notifications, markAsRead, clearAll } = useNotifications();
+  const navigate = useNavigate();
+  const isMobile = useMobile();
+  const [scrolled, setScrolled] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 10) {
+        setScrolled(true);
+      } else {
+        setScrolled(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
-      <div className="container mx-auto px-4 flex items-center justify-between h-16">
-        <div className="flex items-center gap-2">
-          <Button 
-            variant="ghost" 
-            className="mr-2 md:hidden" 
-            onClick={toggleSidebar}
-            size="icon"
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
-          
-          <Link to="/" className="flex items-center">
-            <span className="text-xl font-bold text-primary">Hanoi Stock</span>
-          </Link>
-        </div>
-
-        {/* Search bar */}
-        <div className="hidden md:flex items-center max-w-md w-full mx-6">
-          <div className="relative w-full">
-            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input 
-              placeholder="Tìm kiếm mã cổ phiếu..." 
-              className="pl-8 pr-4 w-full" 
-            />
-          </div>
-        </div>
-
-        {/* Right section */}
-        <div className="flex items-center space-x-2">
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-          </Button>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="relative">
-                <User className="h-5 w-5" />
-                {user && (
-                  <span className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></span>
-                )}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              {user ? (
-                <>
-                  <DropdownMenuLabel>
-                    <div className="flex flex-col">
-                      <span>{user.fullName}</span>
-                      <span className="text-xs text-muted-foreground">{user.role === 'investor' ? 'Nhà đầu tư' : 'Nhân viên'}</span>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem>
-                    <Link to="/profile" className="w-full">Thông tin tài khoản</Link>
-                  </DropdownMenuItem>
-                  {user.role === 'investor' && (
-                    <DropdownMenuItem>
-                      <Link to="/portfolio" className="w-full">Danh mục đầu tư</Link>
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={logout}>
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Đăng xuất
-                  </DropdownMenuItem>
-                </>
-              ) : (
-                <>
-                  <DropdownMenuItem>
-                    <Link to="/login" className="w-full">Đăng nhập</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Link to="/register" className="w-full">Đăng ký</Link>
-                  </DropdownMenuItem>
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+    <header
+      className={cn(
+        "sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6",
+        scrolled && "shadow-sm"
+      )}
+    >
+      <Button
+        variant="outline"
+        size="icon"
+        className="mr-2 md:hidden"
+        onClick={toggleSidebar}
+      >
+        {isSidebarOpen ? (
+          <X className="h-5 w-5" />
+        ) : (
+          <Menu className="h-5 w-5" />
+        )}
+        <span className="sr-only">Toggle Menu</span>
+      </Button>
+      
+      <div className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2">
+          <img src="/placeholder.svg" alt="Logo" className="h-8 w-8" />
+          <span className="hidden font-bold md:inline-block">
+            Hanoi Stock Exchange
+          </span>
+        </Link>
       </div>
       
-      {/* Navigation bar */}
-      <div className="container mx-auto px-4 py-1 border-t border-gray-100 hidden md:block">
-        <MainNavigation />
+      <div className="flex-1" />
+      
+      <div className="flex items-center gap-2">
+        {isAuthenticated && (
+          <NotificationCenter 
+            notifications={notifications}
+            onMarkAsRead={markAsRead}
+            onClearAll={clearAll}
+          />
+        )}
+        <ModeToggle />
+        
+        {isAuthenticated ? (
+          <UserNav user={user} onLogout={handleLogout} />
+        ) : (
+          <div className="flex items-center gap-2">
+            <Button variant="outline" asChild>
+              <Link to="/login">Đăng nhập</Link>
+            </Button>
+            <Button asChild>
+              <Link to="/register">Đăng ký</Link>
+            </Button>
+          </div>
+        )}
       </div>
     </header>
   );

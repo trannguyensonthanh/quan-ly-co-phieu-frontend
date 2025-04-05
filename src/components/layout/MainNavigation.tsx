@@ -1,242 +1,245 @@
 
-import { Link, useLocation } from 'react-router-dom';
+import { useLocation, Link } from "react-router-dom";
 import { 
+  ChevronDown, 
+  Coins, 
   BarChart, 
-  UserPlus, 
   DollarSign, 
   FileText, 
-  PieChart, 
+  Home, 
+  Settings, 
   ShoppingBag, 
-  Settings,
-  Home,
+  Users, 
   Database,
-  LineChart,
-  Clock
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { 
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger
-} from "@/components/ui/navigation-menu";
-import { Button } from '@/components/ui/button';
-import { useAuth } from '@/context/AuthContext';
+  LayoutDashboard,
+  CircleDollarSign,
+  Landmark
+} from "lucide-react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { useAuth } from "@/context/AuthContext";
+
+type NavigationItem = {
+  title: string;
+  href?: string;
+  icon: React.ReactNode;
+  submenu?: NavigationItem[];
+  roles?: ("investor" | "employee")[];
+};
 
 const MainNavigation = () => {
   const location = useLocation();
-  const { isEmployee, isInvestor } = useAuth();
-  
-  const isActive = (path: string) => {
-    if (path === '/') {
-      return location.pathname === path;
-    }
-    return location.pathname.startsWith(path);
+  const { pathname } = location;
+  const { isAuthenticated, isEmployee, isInvestor } = useAuth();
+
+  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({
+    update: true,
+    reporting: false,
+    admin: false,
+  });
+
+  const toggleMenu = (menu: string) => {
+    setOpenMenus((prev) => ({
+      ...prev,
+      [menu]: !prev[menu],
+    }));
   };
 
+  const navigationItems: NavigationItem[] = [
+    {
+      title: "Trang chủ",
+      href: "/",
+      icon: <Home className="h-5 w-5" />,
+    },
+    {
+      title: "Cập nhật",
+      icon: <LayoutDashboard className="h-5 w-5" />,
+      submenu: [
+        {
+          title: "Quản lý nhà đầu tư",
+          href: "/admin/investors",
+          icon: <Users className="h-5 w-5" />,
+          roles: ["employee"],
+        },
+        {
+          title: "Quản lý cổ phiếu",
+          href: "/admin/stocks",
+          icon: <Coins className="h-5 w-5" />,
+          roles: ["employee"],
+        },
+        {
+          title: "Quản lý tiền",
+          href: "/admin/funds",
+          icon: <CircleDollarSign className="h-5 w-5" />,
+          roles: ["employee"],
+        },
+        {
+          title: "Bảng giá",
+          href: "/price-board",
+          icon: <BarChart className="h-5 w-5" />,
+        },
+        {
+          title: "Danh sách cổ phiếu",
+          href: "/stocks",
+          icon: <Landmark className="h-5 w-5" />,
+        },
+        {
+          title: "Đặt lệnh",
+          href: "/trading",
+          icon: <ShoppingBag className="h-5 w-5" />,
+          roles: ["investor"],
+        },
+      ],
+    },
+    {
+      title: "Báo cáo",
+      icon: <FileText className="h-5 w-5" />,
+      submenu: [
+        {
+          title: "Số dư tài khoản",
+          href: "/balance",
+          icon: <DollarSign className="h-5 w-5" />,
+        },
+        {
+          title: "Danh mục đầu tư",
+          href: "/portfolio",
+          icon: <Coins className="h-5 w-5" />,
+          roles: ["investor"],
+        },
+        {
+          title: "Lịch sử đặt lệnh",
+          href: "/order-history",
+          icon: <FileText className="h-5 w-5" />,
+        },
+        {
+          title: "Lịch sử khớp lệnh",
+          href: "/transaction-history",
+          icon: <FileText className="h-5 w-5" />,
+        },
+        {
+          title: "Sao kê lệnh đặt",
+          href: "/reports/stock-orders",
+          icon: <FileText className="h-5 w-5" />,
+        },
+        {
+          title: "Sao kê giao dịch tiền",
+          href: "/reports/money-transactions",
+          icon: <FileText className="h-5 w-5" />,
+        },
+      ],
+    },
+    {
+      title: "Quản trị",
+      icon: <Settings className="h-5 w-5" />,
+      roles: ["employee"],
+      submenu: [
+        {
+          title: "Quản lý người dùng",
+          href: "/admin/users",
+          icon: <Users className="h-5 w-5" />,
+        },
+        {
+          title: "Sao lưu dữ liệu",
+          href: "/admin/backup",
+          icon: <Database className="h-5 w-5" />,
+        },
+      ],
+    },
+  ];
+
+  const isActive = (href: string) => pathname === href;
+
+  const renderNavigationItems = (items: NavigationItem[]) => {
+    return items.map((item) => {
+      // Skip items based on role requirements
+      if (item.roles) {
+        if (isEmployee && !item.roles.includes("employee")) return null;
+        if (isInvestor && !item.roles.includes("investor")) return null;
+      }
+
+      // Handle items with submenus
+      if (item.submenu) {
+        const filteredSubmenu = item.submenu.filter((subItem) => {
+          if (subItem.roles) {
+            if (isEmployee && !subItem.roles.includes("employee")) return false;
+            if (isInvestor && !subItem.roles.includes("investor")) return false;
+          }
+          return true;
+        });
+
+        // Don't render the item if all subitems are filtered out
+        if (filteredSubmenu.length === 0) return null;
+
+        return (
+          <div key={item.title} className="space-y-1">
+            <Button
+              variant="ghost"
+              className="w-full justify-between font-medium"
+              onClick={() => toggleMenu(item.title.toLowerCase())}
+            >
+              <span className="flex items-center">
+                {item.icon}
+                <span className="ml-2">{item.title}</span>
+              </span>
+              <ChevronDown
+                className={cn(
+                  "h-4 w-4 transition-transform",
+                  openMenus[item.title.toLowerCase()] && "rotate-180"
+                )}
+              />
+            </Button>
+
+            {openMenus[item.title.toLowerCase()] && (
+              <div className="pl-6 space-y-1">
+                {filteredSubmenu.map((subItem) => (
+                  <Button
+                    key={subItem.title}
+                    variant={isActive(subItem.href!) ? "secondary" : "ghost"}
+                    className={cn(
+                      "w-full justify-start",
+                      isActive(subItem.href!) && "bg-muted"
+                    )}
+                    asChild
+                  >
+                    <Link to={subItem.href!}>
+                      {subItem.icon}
+                      <span className="ml-2">{subItem.title}</span>
+                    </Link>
+                  </Button>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      }
+
+      // Handle regular items with direct links
+      return (
+        <Button
+          key={item.title}
+          variant={isActive(item.href!) ? "secondary" : "ghost"}
+          className={cn(
+            "w-full justify-start",
+            isActive(item.href!) && "bg-muted"
+          )}
+          asChild
+        >
+          <Link to={item.href!}>
+            {item.icon}
+            <span className="ml-2">{item.title}</span>
+          </Link>
+        </Button>
+      );
+    });
+  };
+
+  if (!isAuthenticated) return null;
+
   return (
-    <NavigationMenu className="mx-auto max-w-none w-full justify-start">
-      <NavigationMenuList className="space-x-1">
-        <NavigationMenuItem>
-          <Link to="/">
-            <Button variant="ghost" className={cn(
-              "text-base font-medium",
-              isActive('/') && "bg-primary/10 text-primary"
-            )}>
-              <Home className="mr-2 h-5 w-5" />
-              Trang chủ
-            </Button>
-          </Link>
-        </NavigationMenuItem>
-
-        {/* Cập nhật Menu */}
-        <NavigationMenuItem>
-          <NavigationMenuTrigger className="text-base">
-            <FileText className="mr-2 h-5 w-5" />
-            Cập nhật
-          </NavigationMenuTrigger>
-          <NavigationMenuContent>
-            <div className="grid w-[400px] gap-2 p-4 md:w-[500px] md:grid-cols-2">
-              {isEmployee && (
-                <>
-                  <NavigationMenuLink asChild>
-                    <Link to="/update/stocks" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                      <div className="text-sm font-medium leading-none">Cập nhật cổ phiếu</div>
-                      <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                        Thêm, Xóa, Ghi, Phục hồi, Reload, Tìm kiếm
-                      </p>
-                    </Link>
-                  </NavigationMenuLink>
-                  <NavigationMenuLink asChild>
-                    <Link to="/update/investors" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                      <div className="text-sm font-medium leading-none">Cập nhật nhà đầu tư</div>
-                      <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                        Quản lý thông tin nhà đầu tư và tài khoản ngân hàng
-                      </p>
-                    </Link>
-                  </NavigationMenuLink>
-                </>
-              )}
-              <NavigationMenuLink asChild>
-                <Link to="/balance" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                  <div className="text-sm font-medium leading-none">Tra cứu số dư</div>
-                  <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                    Xem số dư tiền và cổ phiếu
-                  </p>
-                </Link>
-              </NavigationMenuLink>
-              <NavigationMenuLink asChild>
-                <Link to="/order-history" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                  <div className="text-sm font-medium leading-none">Sao kê giao dịch lệnh</div>
-                  <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                    Xem các giao dịch trong khoảng thời gian
-                  </p>
-                </Link>
-              </NavigationMenuLink>
-              <NavigationMenuLink asChild>
-                <Link to="/transaction-history" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                  <div className="text-sm font-medium leading-none">Sao kê lệnh khớp</div>
-                  <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                    Xem các lệnh khớp đã giao dịch thành công
-                  </p>
-                </Link>
-              </NavigationMenuLink>
-              <NavigationMenuLink asChild>
-                <Link to="/price-board" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                  <div className="text-sm font-medium leading-none">Bảng giá</div>
-                  <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                    Theo dõi giá và khối lượng giao dịch
-                  </p>
-                </Link>
-              </NavigationMenuLink>
-            </div>
-          </NavigationMenuContent>
-        </NavigationMenuItem>
-
-        {/* Trading Menu */}
-        {isInvestor && (
-          <NavigationMenuItem>
-            <NavigationMenuTrigger className="text-base">
-              <ShoppingBag className="mr-2 h-5 w-5" />
-              Đặt lệnh
-            </NavigationMenuTrigger>
-            <NavigationMenuContent>
-              <div className="grid w-[400px] gap-2 p-4">
-                <NavigationMenuLink asChild>
-                  <Link to="/trading" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                    <div className="text-sm font-medium leading-none">Đặt lệnh mua - bán</div>
-                    <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                      Đặt lệnh mua hoặc bán cổ phiếu
-                    </p>
-                  </Link>
-                </NavigationMenuLink>
-              </div>
-            </NavigationMenuContent>
-          </NavigationMenuItem>
-        )}
-
-        {/* Reports Menu */}
-        <NavigationMenuItem>
-          <NavigationMenuTrigger className="text-base">
-            <BarChart className="mr-2 h-5 w-5" />
-            Liệt kê - Thống kê
-          </NavigationMenuTrigger>
-          <NavigationMenuContent>
-            <div className="grid w-[400px] gap-2 p-4">
-              <NavigationMenuLink asChild>
-                <Link to="/reports/stock-orders" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                  <div className="text-sm font-medium leading-none">Sao kê lệnh đặt</div>
-                  <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                    Danh sách lệnh đặt của 1 mã cổ phiếu trong khoảng thời gian
-                  </p>
-                </Link>
-              </NavigationMenuLink>
-              <NavigationMenuLink asChild>
-                <Link to="/reports/money-transactions" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                  <div className="text-sm font-medium leading-none">Sao kê giao dịch tiền</div>
-                  <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                    Giao dịch tiền của nhà đầu tư trong khoảng thời gian
-                  </p>
-                </Link>
-              </NavigationMenuLink>
-            </div>
-          </NavigationMenuContent>
-        </NavigationMenuItem>
-
-        {/* Admin Menu */}
-        {isEmployee && (
-          <NavigationMenuItem>
-            <NavigationMenuTrigger className="text-base">
-              <Settings className="mr-2 h-5 w-5" />
-              Quản trị
-            </NavigationMenuTrigger>
-            <NavigationMenuContent>
-              <div className="grid w-[400px] gap-2 p-4 md:w-[500px] md:grid-cols-2">
-                <NavigationMenuLink asChild>
-                  <Link to="/admin/users" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                    <div className="text-sm font-medium leading-none">Quản lý tài khoản</div>
-                    <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                      Tạo/xóa login cho nhân viên và nhà đầu tư
-                    </p>
-                  </Link>
-                </NavigationMenuLink>
-                <NavigationMenuLink asChild>
-                  <Link to="/admin/backup" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                    <div className="text-sm font-medium leading-none">Sao lưu dữ liệu</div>
-                    <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                      Backup/restore cơ sở dữ liệu
-                    </p>
-                  </Link>
-                </NavigationMenuLink>
-              </div>
-            </NavigationMenuContent>
-          </NavigationMenuItem>
-        )}
-
-        {/* Direct links to major features */}
-        <NavigationMenuItem>
-          <Link to="/stocks">
-            <Button variant="ghost" className={cn(
-              "text-base font-medium",
-              isActive('/stocks') && "bg-primary/10 text-primary"
-            )}>
-              <LineChart className="mr-2 h-5 w-5" />
-              Danh sách cổ phiếu
-            </Button>
-          </Link>
-        </NavigationMenuItem>
-
-        {isInvestor && (
-          <NavigationMenuItem>
-            <Link to="/portfolio">
-              <Button variant="ghost" className={cn(
-                "text-base font-medium",
-                isActive('/portfolio') && "bg-primary/10 text-primary"
-              )}>
-                <PieChart className="mr-2 h-5 w-5" />
-                Danh mục đầu tư
-              </Button>
-            </Link>
-          </NavigationMenuItem>
-        )}
-
-        {isInvestor && (
-          <NavigationMenuItem>
-            <Link to="/trading">
-              <Button variant="ghost" className={cn(
-                "text-base font-medium",
-                isActive('/trading') && "bg-primary/10 text-primary"
-              )}>
-                <ShoppingBag className="mr-2 h-5 w-5" />
-                Đặt lệnh
-              </Button>
-            </Link>
-          </NavigationMenuItem>
-        )}
-      </NavigationMenuList>
-    </NavigationMenu>
+    <div className="flex flex-col space-y-1 py-2">
+      {renderNavigationItems(navigationItems)}
+    </div>
   );
 };
 
