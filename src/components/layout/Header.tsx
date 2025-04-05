@@ -1,6 +1,6 @@
 
 import { Link } from 'react-router-dom';
-import { Bell, Menu, Search, User } from 'lucide-react';
+import { Bell, Menu, Search, User, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -12,12 +12,15 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import MainNavigation from './MainNavigation';
+import { useAuth } from '@/context/AuthContext';
 
 interface HeaderProps {
   toggleSidebar: () => void;
 }
 
 const Header = ({ toggleSidebar }: HeaderProps) => {
+  const { user, logout } = useAuth();
+
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
       <div className="container mx-auto px-4 flex items-center justify-between h-16">
@@ -56,23 +59,47 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" className="relative">
                 <User className="h-5 w-5" />
+                {user && (
+                  <span className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></span>
+                )}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>Tài khoản của tôi</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <Link to="/profile" className="w-full">Thông tin tài khoản</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Link to="/portfolio" className="w-full">Danh mục đầu tư</Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <Link to="/login" className="w-full">Đăng xuất</Link>
-              </DropdownMenuItem>
+              {user ? (
+                <>
+                  <DropdownMenuLabel>
+                    <div className="flex flex-col">
+                      <span>{user.fullName}</span>
+                      <span className="text-xs text-muted-foreground">{user.role === 'investor' ? 'Nhà đầu tư' : 'Nhân viên'}</span>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>
+                    <Link to="/profile" className="w-full">Thông tin tài khoản</Link>
+                  </DropdownMenuItem>
+                  {user.role === 'investor' && (
+                    <DropdownMenuItem>
+                      <Link to="/portfolio" className="w-full">Danh mục đầu tư</Link>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={logout}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Đăng xuất
+                  </DropdownMenuItem>
+                </>
+              ) : (
+                <>
+                  <DropdownMenuItem>
+                    <Link to="/login" className="w-full">Đăng nhập</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Link to="/register" className="w-full">Đăng ký</Link>
+                  </DropdownMenuItem>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

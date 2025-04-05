@@ -2,14 +2,13 @@
 import { Link, useLocation } from 'react-router-dom';
 import { 
   BarChart, 
-  Users, 
+  UserPlus, 
   DollarSign, 
   FileText, 
   PieChart, 
   ShoppingBag, 
   Settings,
   Home,
-  UserPlus,
   Database,
   LineChart,
   Clock
@@ -21,17 +20,14 @@ import {
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
-  NavigationMenuTrigger,
-  navigationMenuTriggerStyle
+  NavigationMenuTrigger
 } from "@/components/ui/navigation-menu";
 import { Button } from '@/components/ui/button';
-
-// Will be replaced with actual authentication status
-const isAdmin = true; // For demo purposes, this will be replaced with actual auth
-const isInvestor = false; // For demo purposes
+import { useAuth } from '@/context/AuthContext';
 
 const MainNavigation = () => {
   const location = useLocation();
+  const { isEmployee, isInvestor } = useAuth();
   
   const isActive = (path: string) => {
     if (path === '/') {
@@ -63,7 +59,7 @@ const MainNavigation = () => {
           </NavigationMenuTrigger>
           <NavigationMenuContent>
             <div className="grid w-[400px] gap-2 p-4 md:w-[500px] md:grid-cols-2">
-              {isAdmin && (
+              {isEmployee && (
                 <>
                   <NavigationMenuLink asChild>
                     <Link to="/update/stocks" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
@@ -170,7 +166,7 @@ const MainNavigation = () => {
         </NavigationMenuItem>
 
         {/* Admin Menu */}
-        {isAdmin && (
+        {isEmployee && (
           <NavigationMenuItem>
             <NavigationMenuTrigger className="text-base">
               <Settings className="mr-2 h-5 w-5" />

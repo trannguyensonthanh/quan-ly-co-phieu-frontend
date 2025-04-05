@@ -13,8 +13,11 @@ import {
   DollarSign,
   CreditCard,
   Clock,
-  FileBarChart
+  FileBarChart,
+  Database,
+  UserPlus
 } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -22,11 +25,8 @@ interface SidebarProps {
 
 const Sidebar = ({ isOpen }: SidebarProps) => {
   const location = useLocation();
+  const { isEmployee, isInvestor } = useAuth();
   
-  // Will be replaced with actual authentication status
-  const isAdmin = true; // For demo purposes, this will be replaced with actual auth
-  const isInvestor = false; // For demo purposes
-
   const menuItems = [
     {
       title: 'Trang chủ',
@@ -78,10 +78,15 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
       icon: <FileBarChart className="h-5 w-5" />,
       path: '/reports/money-transactions',
     },
-    ...(isAdmin ? [{
+    ...(isEmployee ? [{
       title: 'Quản lý tài khoản',
-      icon: <Settings className="h-5 w-5" />,
+      icon: <UserPlus className="h-5 w-5" />,
       path: '/admin/users',
+    }] : []),
+    ...(isEmployee ? [{
+      title: 'Sao lưu dữ liệu',
+      icon: <Database className="h-5 w-5" />,
+      path: '/admin/backup',
     }] : []),
     {
       title: 'Tài khoản',

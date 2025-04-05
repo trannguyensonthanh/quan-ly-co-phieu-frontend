@@ -1,5 +1,4 @@
-
-import { Bank, BankAccount, Order, Stock, StockOwnership, Transaction, User } from './types';
+import { Bank, BankAccount, MoneyTransaction, Order, Stock, StockOwnership, Transaction, User } from './types';
 
 export const mockUsers: User[] = [
   {
@@ -11,7 +10,8 @@ export const mockUsers: User[] = [
     address: 'Số 123 Đường Lê Lợi, Quận 1, TP.HCM',
     phone: '0901234567',
     idNumber: '123456789',
-    gender: 'Nam'
+    gender: 'Nam',
+    role: 'investor'
   },
   {
     id: 'NDT002',
@@ -22,7 +22,32 @@ export const mockUsers: User[] = [
     address: 'Số 45 Đường Nguyễn Huệ, Quận Hoàn Kiếm, Hà Nội',
     phone: '0912345678',
     idNumber: '987654321',
-    gender: 'Nữ'
+    gender: 'Nữ',
+    role: 'investor'
+  },
+  {
+    id: 'NV001',
+    username: 'employee1',
+    fullName: 'Lê Văn C',
+    email: 'levanc@example.com',
+    birthDate: '1988-03-12',
+    address: 'Số 78 Đường Nguyễn Du, Quận Hai Bà Trưng, Hà Nội',
+    phone: '0987654321',
+    idNumber: '111222333',
+    gender: 'Nam',
+    role: 'employee'
+  },
+  {
+    id: 'NV002',
+    username: 'employee2',
+    fullName: 'Phạm Thị D',
+    email: 'phamthid@example.com',
+    birthDate: '1992-07-25',
+    address: 'Số 56 Đường Lý Thường Kiệt, Quận 10, TP.HCM',
+    phone: '0923456789',
+    idNumber: '444555666',
+    gender: 'Nữ',
+    role: 'employee'
   }
 ];
 
@@ -173,6 +198,39 @@ export const mockOrders: Order[] = [
     price: 109000,
     accountId: 'TK002',
     status: 'Một phần'
+  },
+  {
+    id: 3,
+    date: '2025-04-04T14:30:00',
+    type: 'M',
+    method: 'LO',
+    quantity: 2000,
+    stockCode: 'VCB',
+    price: 89000,
+    accountId: 'TK001',
+    status: 'Hết'
+  },
+  {
+    id: 4,
+    date: '2025-04-04T11:45:00',
+    type: 'B',
+    method: 'ATC',
+    quantity: 1500,
+    stockCode: 'HPG',
+    price: 27000,
+    accountId: 'TK001',
+    status: 'Chưa'
+  },
+  {
+    id: 5,
+    date: '2025-04-03T10:00:00',
+    type: 'M',
+    method: 'ATO',
+    quantity: 3000,
+    stockCode: 'MWG',
+    price: 52000,
+    accountId: 'TK002',
+    status: 'Một phần'
   }
 ];
 
@@ -191,6 +249,22 @@ export const mockTransactions: Transaction[] = [
     date: '2025-04-05T10:20:00',
     quantity: 300,
     price: 109000,
+    matchType: 'Khớp 1 phần'
+  },
+  {
+    id: 3,
+    orderId: 3,
+    date: '2025-04-04T14:35:00',
+    quantity: 2000,
+    price: 89000,
+    matchType: 'Khớp hết'
+  },
+  {
+    id: 4,
+    orderId: 5,
+    date: '2025-04-03T10:05:00',
+    quantity: 1500,
+    price: 52000,
     matchType: 'Khớp 1 phần'
   }
 ];
@@ -218,16 +292,59 @@ export const mockStockOwnerships: StockOwnership[] = [
   }
 ];
 
-// Helper function for authentication
+export const mockMoneyTransactions: MoneyTransaction[] = [
+  {
+    id: 1,
+    userId: 'NDT001',
+    date: '2025-04-05',
+    openingBalance: 100000000,
+    amount: -76000000,
+    reason: 'Mua 1000 cổ phiếu VNM',
+    closingBalance: 24000000
+  },
+  {
+    id: 2,
+    userId: 'NDT002',
+    date: '2025-04-05',
+    openingBalance: 150000000,
+    amount: 32700000,
+    reason: 'Bán 300 cổ phiếu FPT',
+    closingBalance: 182700000
+  },
+  {
+    id: 3,
+    userId: 'NDT001',
+    date: '2025-04-04',
+    openingBalance: 278000000,
+    amount: -178000000,
+    reason: 'Mua 2000 cổ phiếu VCB',
+    closingBalance: 100000000
+  },
+  {
+    id: 4,
+    userId: 'NDT002',
+    date: '2025-04-03',
+    openingBalance: 228000000,
+    amount: -78000000,
+    reason: 'Mua 1500 cổ phiếu MWG',
+    closingBalance: 150000000
+  }
+];
+
 export const authenticateUser = (username: string, password: string) => {
-  // In a real app, this would check against a secure password hash
-  if (username === 'investor1' && password === 'password123') {
+  const passwords = {
+    'investor1': 'investor123',
+    'investor2': 'investor123',
+    'employee1': 'employee123',
+    'employee2': 'employee123'
+  };
+  
+  if (Object.keys(passwords).includes(username) && passwords[username as keyof typeof passwords] === password) {
     return mockUsers.find(user => user.username === username);
   }
   return null;
 };
 
-// Get user portfolio
 export const getUserPortfolio = (userId: string) => {
   return mockStockOwnerships.filter(ownership => ownership.userId === userId)
     .map(ownership => {
@@ -241,10 +358,70 @@ export const getUserPortfolio = (userId: string) => {
     });
 };
 
-// Get user orders
 export const getUserOrders = (userId: string) => {
   const userAccount = mockBankAccounts.find(account => account.userId === userId);
   if (!userAccount) return [];
   
   return mockOrders.filter(order => order.accountId === userAccount.id);
+};
+
+export const getUserMoneyTransactions = (userId: string, startDate?: string, endDate?: string) => {
+  let transactions = mockMoneyTransactions.filter(transaction => transaction.userId === userId);
+  
+  if (startDate) {
+    transactions = transactions.filter(transaction => new Date(transaction.date) >= new Date(startDate));
+  }
+  
+  if (endDate) {
+    transactions = transactions.filter(transaction => new Date(transaction.date) <= new Date(endDate));
+  }
+  
+  return transactions.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+};
+
+export const getAccountBalance = (userId: string) => {
+  const account = mockBankAccounts.find(account => account.userId === userId);
+  return account ? account.balance : 0;
+};
+
+export const getStockOrders = (stockCode: string, startDate?: string, endDate?: string) => {
+  let orders = mockOrders.filter(order => order.stockCode === stockCode);
+  
+  if (startDate) {
+    orders = orders.filter(order => new Date(order.date) >= new Date(startDate));
+  }
+  
+  if (endDate) {
+    orders = orders.filter(order => new Date(order.date) <= new Date(endDate));
+  }
+  
+  return orders.map(order => {
+    const transactions = mockTransactions.filter(t => t.orderId === order.id);
+    const totalMatchedQuantity = transactions.reduce((sum, t) => sum + t.quantity, 0);
+    
+    return {
+      ...order,
+      transactions: transactions,
+      matchedQuantity: totalMatchedQuantity
+    };
+  });
+};
+
+export const createUser = (userData: Omit<User, 'id'>) => {
+  const newUser = {
+    ...userData,
+    id: `${userData.role === 'investor' ? 'NDT' : 'NV'}${String(mockUsers.length + 1).padStart(3, '0')}`
+  };
+  
+  mockUsers.push(newUser as User);
+  return newUser;
+};
+
+export const deleteUser = (userId: string) => {
+  const index = mockUsers.findIndex(user => user.id === userId);
+  if (index !== -1) {
+    mockUsers.splice(index, 1);
+    return true;
+  }
+  return false;
 };

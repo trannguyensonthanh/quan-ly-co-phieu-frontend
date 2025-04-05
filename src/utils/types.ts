@@ -9,6 +9,7 @@ export interface User {
   phone: string;
   idNumber: string;
   gender: 'Nam' | 'Nữ';
+  role: 'investor' | 'employee'; // Add role property
 }
 
 export interface BankAccount {
@@ -79,4 +80,14 @@ export interface PriceHistory {
   ceilingPrice: number;
   floorPrice: number;
   referencePrice: number;
+}
+
+export interface MoneyTransaction {
+  id: number;
+  userId: string;
+  date: string;
+  openingBalance: number;
+  amount: number;
+  reason: string;
+  closingBalance: number;
 }
