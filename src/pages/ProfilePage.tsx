@@ -31,6 +31,7 @@ import {
 } from "@/queries/auth.queries";
 import { Eye, EyeOff } from "lucide-react";
 import BankAccountsList from "@/components/profile/BankAccountsList";
+import { useAuth } from "@/context/AuthContext";
 // Schema validation với zod
 const passwordSchema = z
   .object({
@@ -47,6 +48,7 @@ const passwordSchema = z
 
 type PasswordFormValues = z.infer<typeof passwordSchema>;
 const ProfilePage = () => {
+  const { isEmployee } = useAuth();
   const form = useForm<PasswordFormValues>({
     resolver: zodResolver(passwordSchema),
     defaultValues: {
@@ -57,7 +59,6 @@ const ProfilePage = () => {
   });
   const { data: profile, isLoading } = useMyProfileQuery();
   const changePasswordMutation = useChangePasswordMutation();
-  // In a real app, we would get the current user from auth context
 
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -321,7 +322,9 @@ const ProfilePage = () => {
                 <div>
                   <h3 className="font-bold">{profile.HoTen}</h3>
                   <p className="text-sm text-muted-foreground">
-                    Mã NDT: {profile.MaNDT}
+                    {isEmployee
+                      ? `Mã NV: ${profile.MaNV}`
+                      : `Mã NDT: ${profile.MaNDT}`}
                   </p>
                 </div>
               </div>
@@ -353,7 +356,7 @@ const ProfilePage = () => {
             </CardContent>
           </Card>
 
-          <BankAccountsList accounts={accounts} banks={mockBanks} />
+          {!isEmployee && <BankAccountsList />}
         </div>
       </div>
     </div>

@@ -149,3 +149,20 @@ export const useGetAccountCashStatementDetailQuery = (
     staleTime: 1000 * 60, // Dữ liệu ít thay đổi (1 phút)
   });
 };
+
+/** Hook lấy thông tin tất cả tài khoản ngân hàng của NĐT đang đăng nhập */
+export const useGetMyBankAccountsQuery = () => {
+  const isLoggedIn = !!TokenService.getLocalAccessToken();
+
+  return useQuery<any, APIError>({
+    queryKey: ["myBankAccounts"],
+    queryFn: () => {
+      if (!isLoggedIn) {
+        return Promise.reject(new Error("Người dùng chưa đăng nhập"));
+      }
+      return StatementService.getMyBankAccounts();
+    },
+    enabled: isLoggedIn, // Chỉ chạy khi đăng nhập
+    staleTime: 1000 * 60 * 5, // Dữ liệu ít thay đổi (5 phút)
+  });
+};

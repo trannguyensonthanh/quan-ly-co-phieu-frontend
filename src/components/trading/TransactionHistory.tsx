@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import {
   Card,
@@ -42,26 +43,59 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-const TransactionHistory = () => {
-  const { data: ordersToday, isLoading: isLoadingOrders } =
-    useGetMyOrdersTodayQuery();
+import { useCancelOrderMutation } from "@/queries/trading.queries";
+import { useGetMarketStatusQuery } from "@/queries/admin.queries";
+import { Edit2 } from "lucide-react";
+import { Order } from "@/utils/types";
+/**
+ * @typedef {'AUTO' | 'MANUAL'} MarketOperatingMode
+ * @typedef {'PREOPEN' | 'ATO' | 'CONTINUOUS' | 'ATC' | 'CLOSED'} SessionStateType
+ */
+interface TransactionHistoryProps {
+  onModifyOrder?: (order: any) => void;
+}
+const TransactionHistory = ({ onModifyOrder }: TransactionHistoryProps) => {
+  // hàm này dùng để lấy sao kê lệnh đặt của NDT đang đăng nhập trong ngày hôm nay
+  const {
+    data: ordersToday,
+    isLoading: isLoadingOrders,
+    refetch: refetchOrdersToday,
+  } = useGetMyOrdersTodayQuery();
+
+  // hàm này dùng để lấy sao kê lệnh khớp của NDT đang đăng nhập trong ngày hôm nay
   const { data: matchedOrdersToday, isLoading: isLoadingMatchedOrders } =
     useGetMyMatchedOrdersTodayQuery();
-  const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
-  // Handle order cancellation
 
+  // hàm này dùng để hủy lệnh đặt của NDT đang đăng nhập
+  const cancelOrderMutation = useCancelOrderMutation();
+  // hàm này dùng để lấy trạng thái thị trường (đang mở hay đóng) để quyết định có được hủy lệnh hay không
+  const { data: marketStatus } = useGetMarketStatusQuery();
+  const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
+
+  // Handle order cancellation
   const handleCancelConfirm = () => {
     if (!selectedOrderId) return;
-    // Check if within trading hours (8:00 - 15:00)
+    console.log(
+      ["CLOSED", "PREOPEN", "ATO", "ATC"].includes(marketStatus?.sessionState)
+    );
+    console.log(marketStatus?.sessionState);
+    // Check if within trading hours (9:00 - 14:45)
     const now = new Date();
     const hour = now.getHours();
 
-    if (hour < 8 || hour >= 15) {
-      toast.error("Chỉ có thể hủy lệnh trong giờ giao dịch (8:00 - 15:00)");
+    if (
+      // hour < 9 ||
+      // (hour === 14 && now.getMinutes() > 45) ||
+      // hour > 14 ||
+      ["CLOSED", "PREOPEN", "ATO", "ATC"].includes(marketStatus?.sessionState)
+    ) {
+      toast.error(
+        "Chỉ có thể hủy lệnh trong giờ giao dịch (9:00 - 14:45) và khi sàn đang mở"
+      );
       return;
     }
 
-    const orderToCancel = ordersToday.find(
+    const orderToCancel = ordersToday?.find(
       (order) => order.MaGD === selectedOrderId
     );
 
@@ -75,13 +109,26 @@ const TransactionHistory = () => {
       return;
     }
 
-    // Simulate API call
-    toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-      loading: "Đang hủy lệnh...",
-      success: "Hủy lệnh thành công",
-      error: "Có lỗi xảy ra khi hủy lệnh",
-    });
+    // // Call mutation to cancel order
+    cancelOrderMutation.mutate(
+      { maGD: selectedOrderId, sessionState: marketStatus.sessionState },
+      {
+        onSuccess: () => {
+          setSelectedOrderId(null);
+          toast.success("Hủy lệnh thành công");
+
+          refetchOrdersToday();
+        },
+        onError: (error) => {
+          toast.error(
+            `Có lỗi xảy ra khi hủy lệnh: ${error.message || "Không xác định"}`
+          );
+        },
+      }
+    );
   };
+
+  console.log("orderToday", ordersToday);
 
   return (
     <>
@@ -153,13 +200,26 @@ const TransactionHistory = () => {
                           </Badge>
                         </TableCell>
                         <TableCell>
+                          {order.LoaiLenh.trim() === "LO" &&
+                            ["Chờ", "Một phần"].includes(order.TrangThai) && (
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => onModifyOrder?.(order)}
+                                title="Sửa lệnh"
+                                className="h-8 w-8 flex items-center justify-center"
+                              >
+                                <Edit2 className="h-4 w-4" />
+                              </Button>
+                            )}
+
                           {["Chờ", "Một phần"].includes(order.TrangThai) && (
                             <Button
                               variant="ghost"
                               onClick={() => {
                                 setSelectedOrderId(order.MaGD);
                               }}
-                              className="h-8 w-8 text-red-500 hover:text-red-700"
+                              className="h-8 w-8 flex items-center justify-center text-red-500 hover:text-red-700"
                             >
                               <X className="h-4 w-4" />
                             </Button>

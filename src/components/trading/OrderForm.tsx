@@ -23,7 +23,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { mockBankAccounts, mockStocks } from "@/utils/mock-data";
 import { formatCurrency } from "@/utils/format";
-import { OrderMethod, OrderType } from "@/utils/types";
+import { Order, OrderMethod, OrderType } from "@/utils/types";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -35,14 +35,25 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useGetInvestorBankAccountsQuery } from "@/queries/investor.queries";
-import { usePlaceOrderMutation } from "@/queries/trading.queries";
+import {
+  useModifyOrderMutation,
+  usePlaceOrderMutation,
+} from "@/queries/trading.queries";
 import { useGetMyStockQuantityQuery } from "@/queries/portfolio.queries";
 
 interface OrderFormProps {
   initialOrderType?: OrderType;
+  orderToModify?: Order | null;
+  onModifyComplete?: () => void;
+  setOrderToModify?: any;
 }
 
-const OrderForm = ({ initialOrderType = "M" }: OrderFormProps) => {
+const OrderForm = ({
+  initialOrderType = "M",
+  orderToModify = null,
+  onModifyComplete,
+  setOrderToModify,
+}: OrderFormProps) => {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const location = useLocation();
   const preselectedStockCode = location.state?.stockCode;
@@ -63,7 +74,7 @@ const OrderForm = ({ initialOrderType = "M" }: OrderFormProps) => {
     isLoading: isLoadingMarketData,
     refetch: refetchMarketData,
   } = useGetStockMarketDataQuery(stockCode);
-
+  const modifyOrderMutation = useModifyOrderMutation();
   useEffect(() => {
     if (stockCode) {
       refetchMarketData();
@@ -95,10 +106,10 @@ const OrderForm = ({ initialOrderType = "M" }: OrderFormProps) => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       orderType: initialOrderType,
-      MaCP: preselectedStockCode || "",
+      MaCP: "",
       LoaiLenh: "LO",
       SoLuong: 100,
-      Gia: selectedStock?.GiaKhopCuoi || 0,
+      Gia: selectedStock?.GiaDat || 0,
       MaTK: "",
       transactionPassword: "",
     },
@@ -110,6 +121,29 @@ const OrderForm = ({ initialOrderType = "M" }: OrderFormProps) => {
       setPrice(selectedStock.GiaKhopCuoi);
     }
   }, [selectedStock]);
+  useEffect(() => {
+    if (orderToModify) {
+      console.log("orderToModify:", {
+        orderType: (orderToModify.LoaiGD?.trim() as OrderType) || "M",
+        MaCP: orderToModify.MaCP?.trim() || "",
+        LoaiLenh: orderToModify.LoaiLenh?.trim() || "LO",
+        SoLuong: orderToModify.SoLuongDat || 100,
+        Gia: orderToModify.GiaDat || 0,
+        MaTK: orderToModify.MaTK?.trim() || "",
+        transactionPassword: "",
+      });
+      form.reset({
+        orderType: (orderToModify.LoaiGD?.trim() as OrderType) || "M",
+        MaCP: orderToModify.MaCP?.trim() || "",
+        LoaiLenh: orderToModify.LoaiLenh?.trim() || "LO",
+        SoLuong: orderToModify.SoLuongDat || 100,
+        Gia: orderToModify.GiaDat || 0,
+        MaTK: orderToModify.MaTK?.trim() || "",
+        transactionPassword: "",
+      });
+      setStockCode(orderToModify.MaCP?.trim());
+    }
+  }, [orderToModify, form]);
   const { data: allStocks, isLoading: isLoadingStocks } =
     useGetAllStocksQuery();
 
@@ -275,31 +309,57 @@ const OrderForm = ({ initialOrderType = "M" }: OrderFormProps) => {
     if (orderData.LoaiLenh === "ATO" || orderData.LoaiLenh === "ATC") {
       delete orderData.Gia; // Remove Gia if LoaiLenh is ATO or ATC
     }
-    console.log("Submitting order:", orderData);
-    placeOrderMutation.mutate(
-      { orderData, type: orderType },
-      {
-        onSuccess: () => {
-          toast.success(
-            `Đặt lệnh ${orderType === "M" ? "mua" : "bán"} ${
-              data.SoLuong
-            } cổ phiếu ${data.MaCP} thành công`
-          );
-          setIsSubmitting(false);
 
-          // Reset form after successful submission
-          setQuantity(0);
-          setPassword("");
-          isRefetchBankAccounts(); // Refetch bank accounts to update balance
-        },
-        onError: (error: any) => {
-          toast.error(
-            `Đặt lệnh thất bại: ${error.message || "Lỗi không xác định"}`
-          );
-          setIsSubmitting(false);
-        },
-      }
-    );
+    if (orderToModify) {
+      const updatedOrderData = {
+        newSoLuong: data.SoLuong,
+        newGia: data.Gia,
+      };
+      console.log(updatedOrderData);
+      modifyOrderMutation.mutate(
+        { maGD: orderToModify.MaGD, updatedOrderData },
+        {
+          onSuccess: () => {
+            toast.success("Sửa lệnh thành công!");
+            setIsSubmitting(false);
+            if (onModifyComplete) {
+              onModifyComplete();
+            }
+          },
+          onError: (error: any) => {
+            toast.error(
+              `Sửa lệnh thất bại: ${error.message || "Lỗi không xác định"}`
+            );
+            setIsSubmitting(false);
+          },
+        }
+      );
+    } else {
+      placeOrderMutation.mutate(
+        { orderData, type: orderType },
+        {
+          onSuccess: () => {
+            toast.success(
+              `Đặt lệnh ${orderType === "M" ? "mua" : "bán"} ${
+                data.SoLuong
+              } cổ phiếu ${data.MaCP} thành công`
+            );
+            setIsSubmitting(false);
+
+            // Reset form after successful submission
+            setQuantity(0);
+            setPassword("");
+            isRefetchBankAccounts(); // Refetch bank accounts to update balance
+          },
+          onError: (error: any) => {
+            toast.error(
+              `Đặt lệnh thất bại: ${error.message || "Lỗi không xác định"}`
+            );
+            setIsSubmitting(false);
+          },
+        }
+      );
+    }
   };
 
   const calculateOrderValue = () => {
@@ -312,7 +372,11 @@ const OrderForm = ({ initialOrderType = "M" }: OrderFormProps) => {
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle>
-              {orderType === "M" ? "Đặt lệnh mua" : "Đặt lệnh bán"}
+              {orderToModify
+                ? `Sửa lệnh ${orderToModify.LoaiGD === "M" ? "mua" : "bán"} #${
+                    orderToModify.MaGD
+                  }`
+                : `Đặt lệnh ${orderType === "M" ? "mua" : "bán"}`}
             </CardTitle>
             <TabsList>
               <TabsTrigger value="order">Đặt lệnh</TabsTrigger>
@@ -320,8 +384,13 @@ const OrderForm = ({ initialOrderType = "M" }: OrderFormProps) => {
             </TabsList>
           </div>
           <CardDescription>
-            Đặt lệnh {orderType === "M" ? "mua" : "bán"} cổ phiếu trên sàn Hà
-            Nội
+            {orderToModify
+              ? `Sửa lệnh ${
+                  orderToModify.LoaiGD === "M" ? "mua" : "bán"
+                } cổ phiếu trên sàn Hà Nội`
+              : `Đặt lệnh ${
+                  orderType === "M" ? "mua" : "bán"
+                } cổ phiếu trên sàn Hà Nội`}
           </CardDescription>
         </CardHeader>
         <TabsContent value="order">
@@ -339,39 +408,56 @@ const OrderForm = ({ initialOrderType = "M" }: OrderFormProps) => {
                     {formatCurrency(accountInfo.SoTien)}
                   </div>
                 )}
-
-                <FormField
-                  control={form.control}
-                  name="MaCP"
-                  render={({ field, fieldState }) => (
-                    <FormItem>
-                      <FormLabel>Mã cổ phiếu</FormLabel>
-                      <Select
-                        value={field.value}
-                        onValueChange={(value) => {
-                          field.onChange(value);
-                          handleStockCodeChange(value);
-                        }}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Chọn mã cổ phiếu" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {allStocks?.map((stock) => (
-                            <SelectItem key={stock.MaCP} value={stock.MaCP}>
-                              {stock.MaCP} - {stock.TenCty}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {fieldState.error && (
-                        <p className="text-red-500 text-sm mt-1">
-                          {fieldState.error.message}
-                        </p>
-                      )}
-                    </FormItem>
-                  )}
-                />
+                {orderToModify ? (
+                  <FormField
+                    control={form.control}
+                    name="MaCP"
+                    render={() => (
+                      <FormItem>
+                        <FormLabel>Mã cổ phiếu</FormLabel>
+                        <Input
+                          value={`${selectedStock.MaCP.trim()} - ${
+                            selectedStock.TenCty
+                          }`}
+                          disabled
+                        />
+                      </FormItem>
+                    )}
+                  />
+                ) : (
+                  <FormField
+                    control={form.control}
+                    name="MaCP"
+                    render={({ field, fieldState }) => (
+                      <FormItem>
+                        <FormLabel>Mã cổ phiếu</FormLabel>
+                        <Select
+                          value={field.value}
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            handleStockCodeChange(value);
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Chọn mã cổ phiếu" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {allStocks?.map((stock) => (
+                              <SelectItem key={stock.MaCP} value={stock.MaCP}>
+                                {stock.MaCP} - {stock.TenCty}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {fieldState.error && (
+                          <p className="text-red-500 text-sm mt-1">
+                            {fieldState.error.message}
+                          </p>
+                        )}
+                      </FormItem>
+                    )}
+                  />
+                )}
 
                 {selectedStock && (
                   <div className="grid grid-cols-3 gap-2 p-2 bg-gray-100 dark:bg-gray-800 rounded-md">
@@ -401,7 +487,6 @@ const OrderForm = ({ initialOrderType = "M" }: OrderFormProps) => {
                     </div>
                   </div>
                 )}
-
                 <FormField
                   control={form.control}
                   name="LoaiLenh"
@@ -414,6 +499,7 @@ const OrderForm = ({ initialOrderType = "M" }: OrderFormProps) => {
                           field.onChange(value as OrderMethod);
                           setOrderMethod(value as OrderMethod);
                         }}
+                        disabled={!!orderToModify} // Disable if orderToModify is not null
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Chọn phương thức" />
@@ -422,12 +508,16 @@ const OrderForm = ({ initialOrderType = "M" }: OrderFormProps) => {
                           <SelectItem value="LO">
                             LO - Khớp lệnh liên tục
                           </SelectItem>
-                          <SelectItem value="ATO">
-                            ATO - Khớp lệnh mở cửa
-                          </SelectItem>
-                          <SelectItem value="ATC">
-                            ATC - Khớp lệnh đóng cửa
-                          </SelectItem>
+                          {!orderToModify && (
+                            <>
+                              <SelectItem value="ATO">
+                                ATO - Khớp lệnh mở cửa
+                              </SelectItem>
+                              <SelectItem value="ATC">
+                                ATC - Khớp lệnh đóng cửa
+                              </SelectItem>
+                            </>
+                          )}
                         </SelectContent>
                       </Select>
                       {fieldState.error && (
@@ -562,17 +652,19 @@ const OrderForm = ({ initialOrderType = "M" }: OrderFormProps) => {
                 <Separator className="my-4" />
 
                 {quantity > 0 && price > 0 && (
-                  <div className="border rounded-md p-3 bg-gray-50">
+                  <div className="border rounded-md p-3 bg-gray-50 dark:bg-gray-800">
                     <div className="flex justify-between items-center">
-                      <span className="font-medium">Tổng giá trị:</span>
-                      <span className="font-bold text-lg">
+                      <span className="font-medium text-gray-800 dark:text-gray-200">
+                        Tổng giá trị:
+                      </span>
+                      <span className="font-bold text-lg text-gray-900 dark:text-gray-100">
                         {formatCurrency(calculateOrderValue())}
                       </span>
                     </div>
                   </div>
                 )}
 
-                <CardFooter>
+                <CardFooter className="flex flex-col space-y-2">
                   <Button
                     className="w-full"
                     type="submit"
@@ -580,8 +672,37 @@ const OrderForm = ({ initialOrderType = "M" }: OrderFormProps) => {
                   >
                     {isSubmitting
                       ? "Đang xử lý..."
+                      : orderToModify
+                      ? `Sửa lệnh ${orderType === "M" ? "mua" : "bán"}`
                       : `Đặt lệnh ${orderType === "M" ? "mua" : "bán"}`}
                   </Button>
+                  {orderToModify && (
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => {
+                        form.reset({
+                          orderType: "M",
+                          MaCP: "",
+                          LoaiLenh: "LO",
+                          SoLuong: 100,
+                          Gia: selectedStock?.GiaKhopCuoi || 0,
+                          MaTK: "",
+                          transactionPassword: "",
+                        });
+                        setOrderType("M");
+                        setStockCode("");
+                        setOrderMethod("LO");
+                        setQuantity(100);
+                        setPrice(selectedStock?.GiaKhopCuoi || 0);
+                        setAccount("");
+                        setPassword("");
+                        setOrderToModify(null);
+                      }}
+                    >
+                      Chuyển về đặt lệnh mới
+                    </Button>
+                  )}
                 </CardFooter>
               </form>
             </Form>

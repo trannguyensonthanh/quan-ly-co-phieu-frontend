@@ -87,15 +87,17 @@ export type OrderMethod = "LO" | "ATO" | "ATC";
 export type OrderStatus = "Hủy" | "Chưa" | "Một phần" | "Hết" | "Chờ";
 
 export interface Order {
-  id: number;
-  date: string;
-  type: OrderType;
-  method: OrderMethod;
-  quantity: number;
-  stockCode: string;
-  price: number;
-  accountId: string;
-  status: OrderStatus;
+  MaGD: number; // Mã giao dịch
+  LoaiGD: OrderType; // M: Mua, B: Bán
+  LoaiLenh: OrderMethod; // LO, ATO, ATC
+  MaCP: string; // Mã cổ phiếu
+  MaTK: string; // Mã tài khoản
+  NgayGD: string; // Ngày giao dịch
+  SoLuongDat: number; // Số lượng đặt
+  TongSoLuongKhop: number; // Tổng số lượng khớp
+  GiaDat: number; // Giá đặt
+  GiaKhopTrungBinh?: number | null; // Giá khớp trung bình (có thể null)
+  TrangThai: OrderStatus; // Trạng thái lệnh (Chờ, Hủy, Một phần, Hết)
 }
 
 export interface Transaction {

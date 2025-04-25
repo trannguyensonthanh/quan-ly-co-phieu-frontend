@@ -37,6 +37,11 @@ export interface CancelOrderResponse {
   message: string;
 }
 
+export interface ModifyInfo {
+  newSoLuong: number;
+  newGia: number;
+}
+
 /**
  * Đặt lệnh Mua.
  * @param orderData Dữ liệu lệnh mua.
@@ -62,12 +67,40 @@ const placeSellOrder = (
 /**
  * Hủy một lệnh đặt đang chờ hoặc khớp một phần.
  * @param maGD Mã giao dịch (lệnh đặt) cần hủy.
+ * @param sessionState Trạng thái phiên giao dịch.
  */
-const cancelOrder = (maGD: number): Promise<CancelOrderResponse> => {
+const cancelOrder = (
+  maGD: number,
+  sessionState: string
+): Promise<CancelOrderResponse> => {
   const token = TokenService.getLocalAccessToken();
   if (!maGD || maGD <= 0)
     return Promise.reject(new Error("Mã giao dịch không hợp lệ"));
-  return apiHelper.delete(`${API_URL}/orders/${maGD}`, token);
+  if (!sessionState)
+    return Promise.reject(new Error("Trạng thái phiên không hợp lệ"));
+  return apiHelper.delete(
+    `${API_URL}/orders/${maGD}?sessionState=${encodeURIComponent(
+      sessionState
+    )}`,
+    token
+  );
+};
+
+/**
+ * Sửa lệnh LO.
+ * @param maGD Mã giao dịch (lệnh đặt) cần sửa.
+ * @param updatedOrderData Dữ liệu lệnh mới.
+ */
+const modifyOrder = (
+  maGD: number,
+  updatedOrderData: Partial<ModifyInfo>
+): Promise<PlaceOrderResponse> => {
+  const token = TokenService.getLocalAccessToken();
+  if (!maGD || maGD <= 0)
+    return Promise.reject(new Error("Mã giao dịch không hợp lệ"));
+  if (!updatedOrderData || Object.keys(updatedOrderData).length === 0)
+    return Promise.reject(new Error("Dữ liệu lệnh mới không hợp lệ"));
+  return apiHelper.put(`${API_URL}/orders/${maGD}`, updatedOrderData, token);
 };
 
 // Export service object
@@ -75,6 +108,7 @@ const TradingService = {
   placeBuyOrder,
   placeSellOrder,
   cancelOrder,
+  modifyOrder,
 };
 
 export default TradingService;

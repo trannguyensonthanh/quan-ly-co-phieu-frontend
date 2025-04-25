@@ -9,7 +9,49 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+import { Order } from "@/utils/types";
+import { toast } from "@/components/ui/use-toast";
+import { useState } from "react";
 const TradingPage = () => {
+  const [orderToModify, setOrderToModify] = useState<Order | null>(null);
+
+  const handleModifyOrder = (order: Order) => {
+    // Chỉ cho phép sửa lệnh LO và trong giờ giao dịch LO
+    const now = new Date();
+    // const isLOSession = now.getHours() >= 9 && now.getHours() < 14.3;
+    const isLOSession = true;
+
+    if (order.LoaiLenh.trim() !== "LO") {
+      toast({
+        title: "Không thể sửa lệnh",
+        description: "Chỉ có thể sửa lệnh LO",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!isLOSession) {
+      toast({
+        title: "Không thể sửa lệnh",
+        description:
+          "Chỉ có thể sửa lệnh trong phiên giao dịch LO (9:00 - 14:30)",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (order.TrangThai === "Hết" || order.TrangThai === "Hủy") {
+      toast({
+        title: "Không thể sửa lệnh",
+        description: "Chỉ có thể sửa lệnh chưa khớp hoặc khớp một phần",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setOrderToModify(order);
+  };
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Đặt lệnh</h1>
@@ -68,20 +110,30 @@ const TradingPage = () => {
         <TabsContent value="buy">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-1">
-              <OrderForm initialOrderType="M" />
+              <OrderForm
+                initialOrderType="M"
+                orderToModify={orderToModify}
+                setOrderToModify={setOrderToModify}
+                onModifyComplete={() => setOrderToModify(null)}
+              />
             </div>
             <div className="lg:col-span-2">
-              <TransactionHistory />
+              <TransactionHistory onModifyOrder={handleModifyOrder} />
             </div>
           </div>
         </TabsContent>
         <TabsContent value="sell">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-1">
-              <OrderForm initialOrderType="B" />
+              <OrderForm
+                initialOrderType="B"
+                orderToModify={orderToModify}
+                setOrderToModify={setOrderToModify}
+                onModifyComplete={() => setOrderToModify(null)}
+              />
             </div>
             <div className="lg:col-span-2">
-              <TransactionHistory />
+              <TransactionHistory onModifyOrder={handleModifyOrder} />
             </div>
           </div>
         </TabsContent>

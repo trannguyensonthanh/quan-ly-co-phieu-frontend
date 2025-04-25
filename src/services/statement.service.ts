@@ -152,6 +152,14 @@ const getAccountCashStatementDetail = (
   );
 };
 
+/**
+ * Lấy thông tin tất cả tài khoản ngân hàng của NĐT đang đăng nhập.
+ */
+const getMyBankAccounts = (): Promise<any> => {
+  const token = TokenService.getLocalAccessToken();
+  return apiHelper.get(`${API_URL}/bank-accounts`, token);
+};
+
 // Export service object
 const StatementService = {
   getMyOrderStatement,
@@ -160,6 +168,7 @@ const StatementService = {
   getMyOrdersToday,
   getMyMatchedOrdersToday,
   getAccountCashStatementDetail,
+  getMyBankAccounts,
 };
 
 export default StatementService;

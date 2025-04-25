@@ -23,11 +23,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { useMarketBoardQuery } from "@/queries/stock.queries";
 import DetailedPriceBoardModal from "@/components/trading/DetailedPriceBoardModal";
+import { useMarketStream } from "@/hooks/useMarketStream";
 
 const PriceBoardPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [marketBoard, setMarketBoard] = useState([]);
+
+  // Kích hoạt SSE listener
+  useMarketStream(); // Hook này sẽ tự động cập nhật cache của React Query
+
   const {
     refetch: refetchMarketBoard,
     isLoading: isLoadingMarketBoard,
@@ -36,7 +41,7 @@ const PriceBoardPage = () => {
     data: marketBoardData,
     isFetching: isFetchingMarketBoard,
     isSuccess: isSuccessMarketBoard,
-  } = useMarketBoardQuery();
+  } = useMarketBoardQuery({ refetchInterval: false });
 
   useEffect(() => {
     // Fetch market board data on component mount
@@ -87,7 +92,9 @@ const PriceBoardPage = () => {
   };
 
   // Calculate price change and percentage
-
+  if (isLoadingMarketBoard) return <p>Đang tải bảng giá...</p>;
+  if (isErrorMarketBoard)
+    return <p style={{ color: "red" }}>Lỗi tải bảng giá</p>;
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -175,6 +182,11 @@ const PriceBoardPage = () => {
                         isFloor
                       );
 
+                      const formatValue = (value: number | null | undefined) =>
+                        value === null || value === undefined || value === 0
+                          ? "-"
+                          : formatCurrency(value);
+
                       return (
                         <TableRow key={stock.MaCP}>
                           <TableCell>
@@ -190,27 +202,25 @@ const PriceBoardPage = () => {
                               priceBgColor
                             )}
                           >
-                            {formatCurrency(stock.GiaKhopCuoi)}
+                            {formatValue(stock.GiaKhopCuoi)}
                           </TableCell>
                           <TableCell className={cn("text-right", priceColor)}>
                             {stock.ThayDoi > 0 ? "+" : ""}
-                            {formatCurrency(stock.ThayDoi)} (
-                            {stock.ThayDoi > 0 ? "+" : ""}
-                            {stock.PhanTramThayDoi}%)
+                            {stock.ThayDoi} ({stock.ThayDoi > 0 ? "+" : ""}
+                            {stock.PhanTramThayDoi ?? "-"}%)
                           </TableCell>
 
                           <TableCell className="text-right text-purple-600">
-                            {formatCurrency(stock.GiaTran)}
+                            {formatValue(stock.GiaTran)}
                           </TableCell>
                           <TableCell className="text-right text-sky-600">
-                            {formatCurrency(stock.GiaSan)}
+                            {formatValue(stock.GiaSan)}
                           </TableCell>
                           <TableCell className="text-right text-amber-500">
-                            {formatCurrency(stock.GiaTC)}
+                            {formatValue(stock.GiaTC)}
                           </TableCell>
                           <TableCell className="text-right">
-                            {formatNumber(stock.TongKLKhop)}{" "}
-                            {/* Just a mock total volume */}
+                            {formatNumber(stock.TongKLKhop) || "-"}
                           </TableCell>
                         </TableRow>
                       );

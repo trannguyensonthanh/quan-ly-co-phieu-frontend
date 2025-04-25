@@ -8,6 +8,7 @@ import type {
   PlaceOrderPayload,
   PlaceOrderResponse,
   CancelOrderResponse,
+  ModifyInfo,
 } from "../services/trading.service";
 
 // Import các query keys cần invalidate
@@ -69,8 +70,13 @@ export const usePlaceOrderMutation = () => {
 export const useCancelOrderMutation = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<CancelOrderResponse, Error, { maGD: number }>({
-    mutationFn: ({ maGD }) => TradingService.cancelOrder(maGD),
+  return useMutation<
+    CancelOrderResponse,
+    Error,
+    { maGD: number; sessionState: string }
+  >({
+    mutationFn: ({ maGD, sessionState }) =>
+      TradingService.cancelOrder(maGD, sessionState),
     onSuccess: (data, variables) => {
       console.log(`Cancel order ${variables.maGD} successful:`, data.message);
 
@@ -87,16 +93,44 @@ export const useCancelOrderMutation = () => {
       queryClient.invalidateQueries({ queryKey: statementKeys.cash({}) });
 
       // Hiển thị thông báo thành công
-      alert(`Hủy lệnh ${variables.maGD} thành công! ${data.message}`);
     },
     onError: (error: any, variables) => {
       console.error(`Cancel order ${variables.maGD} failed:`, error);
       // Hiển thị lỗi cho người dùng
-      alert(
-        `Lỗi hủy lệnh ${variables.maGD}: ${
-          error.message || "Lỗi không xác định"
-        }`
-      );
+    },
+  });
+};
+
+/**
+ * Hook để sửa lệnh LO.
+ */
+export const useModifyOrderMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    PlaceOrderResponse,
+    Error,
+    { maGD: number; updatedOrderData: Partial<ModifyInfo> }
+  >({
+    mutationFn: ({ maGD, updatedOrderData }) =>
+      TradingService.modifyOrder(maGD, updatedOrderData),
+    onSuccess: (data, variables) => {
+      console.log(`Modify order ${variables.maGD} successful:`, data.order);
+
+      // Sau khi sửa lệnh thành công:
+      // 1. Invalidate sao kê lệnh để cập nhật trạng thái lệnh
+      queryClient.invalidateQueries({ queryKey: statementKeys.orders({}) });
+
+      // 2. Invalidate số dư và danh mục để đảm bảo dữ liệu được cập nhật
+      queryClient.invalidateQueries({ queryKey: portfolioKeys.balances() });
+      queryClient.invalidateQueries({ queryKey: portfolioKeys.stocks() });
+      queryClient.invalidateQueries({ queryKey: statementKeys.cash({}) });
+
+      // Hiển thị thông báo thành công
+    },
+    onError: (error: any, variables) => {
+      console.error(`Modify order ${variables.maGD} failed:`, error);
+      // Hiển thị lỗi cho người dùng
     },
   });
 };

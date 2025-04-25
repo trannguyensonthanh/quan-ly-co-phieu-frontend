@@ -27,7 +27,7 @@ const stockKeys = {
     [...stockKeys.all, "history", maCP] as const,
 };
 
-const marketKeys = {
+export const marketKeys = {
   all: ["market"] as const,
   board: () => [...marketKeys.all, "board"] as const, // Key cho bảng giá
   stockDetails: () => [...marketKeys.all, "stockDetails"] as const,

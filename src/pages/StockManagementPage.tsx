@@ -494,17 +494,22 @@ const StockManagementPage = () => {
   const handleATO = async () => {
     setLoadingKey("ATO");
     try {
-      await triggerATOMutation.mutateAsync();
-      toast({
-        title: "Khớp lệnh ATO thành công",
-        description: "Đã khớp lệnh ATO.",
-      });
-    } catch (error) {
-      toast({
-        title: "Lỗi",
-        description:
-          error.message || "Không thể khớp lệnh ATO. Vui lòng thử lại.",
-        variant: "destructive",
+      await triggerATOMutation.mutateAsync(undefined, {
+        onSuccess: () => {
+          toast({
+            title: "Khớp lệnh ATO thành công",
+            description: "Đã khớp lệnh ATO.",
+          });
+          refetchMarketStatus();
+        },
+        onError: (error) => {
+          toast({
+            title: "Lỗi",
+            description:
+              error.message || "Không thể khớp lệnh ATO. Vui lòng thử lại.",
+            variant: "destructive",
+          });
+        },
       });
     } finally {
       setLoadingKey(undefined);
@@ -514,55 +519,72 @@ const StockManagementPage = () => {
   const handleLO = async () => {
     setLoadingKey("LO");
     try {
-      await triggerContinuousMutation.mutateAsync();
-      toast({
-        title: "Khớp lệnh LO thành công",
-        description: "Đã khớp lệnh LO.",
-      });
-    } catch (error) {
-      toast({
-        title: "Lỗi",
-        description:
-          error.message || "Không thể khớp lệnh LO. Vui lòng thử lại.",
-        variant: "destructive",
+      await triggerContinuousMutation.mutateAsync(undefined, {
+        onSuccess: () => {
+          toast({
+            title: "Khớp lệnh LO thành công",
+            description: "Đã khớp lệnh LO.",
+          });
+          refetchMarketStatus();
+        },
+        onError: (error) => {
+          toast({
+            title: "Lỗi",
+            description:
+              error.message || "Không thể khớp lệnh LO. Vui lòng thử lại.",
+            variant: "destructive",
+          });
+        },
       });
     } finally {
       setLoadingKey(undefined);
     }
   };
+
   const handleATC = async () => {
     setLoadingKey("ATC");
     try {
-      await triggerATCMutation.mutateAsync();
-      toast({
-        title: "Khớp lệnh ATC thành công",
-        description: "Đã khớp lệnh ATC.",
-      });
-    } catch (error) {
-      toast({
-        title: "Lỗi",
-        description:
-          error.message || "Không thể khớp lệnh ATC. Vui lòng thử lại.",
-        variant: "destructive",
+      await triggerATCMutation.mutateAsync(undefined, {
+        onSuccess: () => {
+          toast({
+            title: "Khớp lệnh ATC thành công",
+            description: "Đã khớp lệnh ATC.",
+          });
+          refetchMarketStatus(); // Tải lại trạng thái thị trường sau khi khớp lệnh
+        },
+        onError: (error) => {
+          toast({
+            title: "Lỗi",
+            description:
+              error.message || "Không thể khớp lệnh ATC. Vui lòng thử lại.",
+            variant: "destructive",
+          });
+        },
       });
     } finally {
       setLoadingKey(undefined);
     }
   };
+
   const handlePrepareNextDay = async () => {
     setLoadingKey("PREPARE");
     try {
-      await prepareNextDayPricesMutation.mutateAsync();
-      toast({
-        title: "Chuẩn bị dữ liệu hoàn tất",
-        description: "Dữ liệu ngày tiếp theo đã sẵn sàng.",
-      });
-    } catch (error) {
-      toast({
-        title: "Lỗi",
-        description:
-          error.message || "Không thể chuẩn bị dữ liệu. Vui lòng thử lại.",
-        variant: "destructive",
+      await prepareNextDayPricesMutation.mutateAsync(undefined, {
+        onSuccess: () => {
+          toast({
+            title: "Chuẩn bị dữ liệu hoàn tất",
+            description: "Dữ liệu ngày tiếp theo đã sẵn sàng.",
+          });
+          refetchMarketStatus();
+        },
+        onError: (error) => {
+          toast({
+            title: "Lỗi",
+            description:
+              error.message || "Không thể chuẩn bị dữ liệu. Vui lòng thử lại.",
+            variant: "destructive",
+          });
+        },
       });
     } finally {
       setLoadingKey(undefined);

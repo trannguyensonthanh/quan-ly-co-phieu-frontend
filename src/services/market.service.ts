@@ -4,7 +4,38 @@ import TokenService from "@/services/token.service";
 import apiHelper from "./apiHelper";
 
 const API_URL = "/market";
-
+// Định nghĩa kiểu dữ liệu chi tiết thị trường của một mã cổ phiếu
+export interface StockMarketDetail {
+  MaCP: string; // Mã cổ phiếu
+  TenCty: string; // Tên công ty
+  GiaTC: number | null; // Giá tham chiếu
+  GiaTran: number | null; // Giá trần
+  GiaSan: number | null; // Giá sàn
+  GiaKhopCuoi: number | null; // Giá khớp cuối
+  KLKhopCuoi: number | null; // Khối lượng khớp cuối
+  ThayDoi: number | null; // Thay đổi so với giá tham chiếu
+  PhanTramThayDoi: number | null; // Phần trăm thay đổi
+  TongKLKhop: number; // Tổng khối lượng khớp
+  GiaDongCua?: number; // Giá đóng cửa
+  GiaMoCua?: number; // Giá mở cửa
+  GiaCaoNhat?: number; // Giá cao nhất
+  GiaThapNhat?: number; // Giá thấp nhất
+  GiaMua1?: number;
+  KLMua1?: number;
+  GiaMua2?: number;
+  KLMua2?: number;
+  GiaMua3?: number;
+  KLMua3?: number;
+  GiaBan1?: number;
+  KLBan1?: number;
+  GiaBan2?: number;
+  KLBan2?: number;
+  GiaBan3?: number;
+  KLBan3?: number;
+  TongKLDatMua?: number; // Tổng KL đặt mua chờ khớp
+  TongKLDatBan: number; // Tổng KL đặt bán chờ khớp
+  SoLuongPH?: number; // Số lượng cổ phiếu đang lưu hành
+}
 // Định nghĩa kiểu dữ liệu cho một dòng trong bảng giá (khớp với CoPhieuModel.getMarketBoardData)
 export interface MarketBoardItem {
   // Export để component dùng
@@ -25,6 +56,18 @@ export interface MarketBoardItem {
   GiaMoCua?: number;
   GiaCaoNhat?: number;
   GiaThapNhat?: number;
+  GiaMua1?: number;
+  KLMua1?: number;
+  GiaMua2?: number;
+  KLMua2?: number;
+  GiaMua3?: number;
+  KLMua3?: number;
+  GiaBan1?: number;
+  KLBan1?: number;
+  GiaBan2?: number;
+  KLBan2?: number;
+  GiaBan3?: number;
+  KLBan3?: number;
 }
 
 export type MarketBoardResponse = MarketBoardItem[];

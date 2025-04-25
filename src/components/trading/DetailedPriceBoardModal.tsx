@@ -139,36 +139,46 @@ const DetailedPriceBoardModal = ({ stocks }: Props) => {
                   stock.GiaTC
                 );
 
+                const displayValue = (value: number | undefined | null) =>
+                  value === undefined || value === null || value === 0
+                    ? "-"
+                    : formatCurrency(value);
+
+                const displayNumber = (value: number | undefined | null) =>
+                  value === undefined || value === null || value === 0
+                    ? "-"
+                    : formatNumber(value);
+
                 return (
                   <TableRow key={stock.MaCP}>
                     <TableCell className="font-medium">{stock.MaCP}</TableCell>
                     <TableCell className="text-right text-purple-600">
-                      {formatCurrency(stock.GiaTran || 0)}
+                      {displayValue(stock.GiaTran)}
                     </TableCell>
                     <TableCell className="text-right text-sky-600">
-                      {formatCurrency(stock.GiaSan || 0)}
+                      {displayValue(stock.GiaSan)}
                     </TableCell>
                     <TableCell className="text-right text-amber-500">
-                      {formatCurrency(stock.GiaTC)}
+                      {displayValue(stock.GiaTC)}
                     </TableCell>
                     {/* Mock buy orders */}
                     <TableCell className="text-right text-green-500">
-                      {formatCurrency(stock.GiaMua3)}
+                      {displayValue(stock.GiaMua3)}
                     </TableCell>
                     <TableCell className="text-right">
-                      {stock.KLMua3 || 0}
+                      {displayNumber(stock.KLMua3)}
                     </TableCell>
                     <TableCell className="text-right text-green-500">
-                      {formatCurrency(stock.GiaMua2)}
+                      {displayValue(stock.GiaMua2)}
                     </TableCell>
                     <TableCell className="text-right">
-                      {stock.KLMua2 || 0}
+                      {displayNumber(stock.KLMua2)}
                     </TableCell>
                     <TableCell className="text-right text-green-500">
-                      {formatCurrency(stock.GiaMua1)}
+                      {displayValue(stock.GiaMua1)}
                     </TableCell>
                     <TableCell className="text-right border-r">
-                      {stock.KLMua1 || 0}
+                      {displayNumber(stock.KLMua1)}
                     </TableCell>
                     {/* Matched order */}
                     <TableCell
@@ -178,45 +188,45 @@ const DetailedPriceBoardModal = ({ stocks }: Props) => {
                         priceBgColor
                       )}
                     >
-                      {formatCurrency(stock.GiaKhopCuoi || 0)}
+                      {displayValue(stock.GiaKhopCuoi)}
                     </TableCell>
                     <TableCell className="text-right">
-                      {formatNumber(stock.TongKLKhop || 0)}
+                      {displayNumber(stock.TongKLKhop)}
                     </TableCell>
                     <TableCell
                       className={cn("text-right border-r", priceColor)}
                     >
                       {stock.ThayDoi > 0 ? "+" : ""}
-                      {stock.PhanTramThayDoi}%
+                      {stock.PhanTramThayDoi || "-"}
                     </TableCell>
                     {/* Mock sell orders */}
                     <TableCell className="text-right text-red-500">
-                      {formatCurrency(stock.GiaBan1)}
+                      {displayValue(stock.GiaBan1)}
                     </TableCell>
                     <TableCell className="text-right">
-                      {stock.KLBan1 || 0}
+                      {displayNumber(stock.KLBan1)}
                     </TableCell>
                     <TableCell className="text-right text-red-500">
-                      {formatCurrency(stock.GiaBan2)}
+                      {displayValue(stock.GiaBan2)}
                     </TableCell>
                     <TableCell className="text-right">
-                      {stock.KLBan2 || 0}
+                      {displayNumber(stock.KLBan2)}
                     </TableCell>
                     <TableCell className="text-right text-red-500">
-                      {formatCurrency(stock.GiaBan3)}
+                      {displayValue(stock.GiaBan3)}
                     </TableCell>
                     <TableCell className="text-right">
-                      {stock.KLBan3 || 0}
+                      {displayNumber(stock.KLBan3)}
                     </TableCell>
                     {/* Total volume */}
                     <TableCell className="text-right font-medium">
-                      {formatNumber((stock.TongKLKhop || 0) * 1.5)}
+                      {displayNumber((stock.TongKLKhop || 0) * 1.5)}
                     </TableCell>
                     <TableCell className="text-right text-green-500">
-                      {formatCurrency(stock.GiaCaoNhat || 0)}
+                      {displayValue(stock.GiaCaoNhat)}
                     </TableCell>
                     <TableCell className="text-right text-red-500">
-                      {formatCurrency(stock.GiaThapNhat || 0)}
+                      {displayValue(stock.GiaThapNhat)}
                     </TableCell>
                   </TableRow>
                 );
