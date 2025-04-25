@@ -1,16 +1,14 @@
-
-import { Navigate, Outlet } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
+import { Navigate, Outlet } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 
 interface ProtectedRouteProps {
-  allowedRoles?: ('investor' | 'employee')[];
+  allowedRoles?: ("NhaDauTu" | "NhanVien")[];
 }
 
 const ProtectedRoute = ({ allowedRoles }: ProtectedRouteProps) => {
-  const { isAuthenticated, user } = useAuth();
-
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
   // If not authenticated, redirect to login
-  if (!isAuthenticated) {
+  if (!user) {
     return <Navigate to="/login" replace />;
   }
 

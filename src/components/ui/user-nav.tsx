@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -10,22 +11,23 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User } from "@/utils/types";
+// import { User } from "@/utils/types";
 import { Link } from "react-router-dom";
 import { LogOut, User as UserIcon, Settings, CreditCard } from "lucide-react";
+import { SignInData } from "@/services/auth.service";
 
 interface UserNavProps {
-  user: User | null;
+  user: SignInData | null;
   onLogout: () => void;
 }
 
 export function UserNav({ user, onLogout }: UserNavProps) {
   if (!user) return null;
-  
-  const initials = user.fullName
-    .split(' ')
-    .map(name => name[0])
-    .join('')
+
+  const initials = user.username
+    .split(" ")
+    .map((name) => name[0])
+    .join("")
     .toUpperCase()
     .substring(0, 2);
 
@@ -34,7 +36,7 @@ export function UserNav({ user, onLogout }: UserNavProps) {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
-            <AvatarImage src="/placeholder.svg" alt={user.fullName} />
+            <AvatarImage src="/placeholder.svg" alt={user.username} />
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
         </Button>
@@ -42,7 +44,7 @@ export function UserNav({ user, onLogout }: UserNavProps) {
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user.fullName}</p>
+            <p className="text-sm font-medium leading-none">{user.username}</p>
             <p className="text-xs leading-none text-muted-foreground">
               {user.email}
             </p>

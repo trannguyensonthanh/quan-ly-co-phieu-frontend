@@ -1,11 +1,10 @@
-
 import { useState } from "react";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -22,7 +21,7 @@ const SettingsPage = () => {
     emailNotifications: true,
     priceAlerts: true,
     orderUpdates: true,
-    marketNews: false
+    marketNews: false,
   });
 
   const handleSaveProfile = (e: React.FormEvent) => {
@@ -34,9 +33,9 @@ const SettingsPage = () => {
   };
 
   const handleNotificationChange = (key: string) => {
-    setNotificationSettings(prev => ({
+    setNotificationSettings((prev) => ({
       ...prev,
-      [key]: !prev[key as keyof typeof prev]
+      [key]: !prev[key as keyof typeof prev],
     }));
   };
 
@@ -63,16 +62,16 @@ const SettingsPage = () => {
             Quản lý cài đặt tài khoản và tùy chọn của bạn.
           </p>
         </div>
-        
-        <Tabs defaultValue="profile" className="space-y-4">
+
+        <Tabs defaultValue="notifications" className="space-y-4">
           <TabsList>
-            <TabsTrigger value="profile">Hồ sơ</TabsTrigger>
+            {/* <TabsTrigger value="profile">Hồ sơ</TabsTrigger> */}
             <TabsTrigger value="notifications">Thông báo</TabsTrigger>
             <TabsTrigger value="appearance">Giao diện</TabsTrigger>
-            <TabsTrigger value="security">Bảo mật</TabsTrigger>
+            {/* <TabsTrigger value="security">Bảo mật</TabsTrigger> */}
           </TabsList>
-          
-          <TabsContent value="profile" className="space-y-4">
+
+          {/* <TabsContent value="profile" className="space-y-4">
             <Card>
               <CardHeader>
                 <CardTitle>Thông tin cá nhân</CardTitle>
@@ -104,8 +103,8 @@ const SettingsPage = () => {
                 </form>
               </CardContent>
             </Card>
-          </TabsContent>
-          
+          </TabsContent> */}
+
           <TabsContent value="notifications" className="space-y-4">
             <Card>
               <CardHeader>
@@ -118,15 +117,19 @@ const SettingsPage = () => {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                      <Label htmlFor="emailNotifications">Thông báo qua email</Label>
+                      <Label htmlFor="emailNotifications">
+                        Thông báo qua email
+                      </Label>
                       <p className="text-sm text-muted-foreground">
                         Nhận thông báo qua email.
                       </p>
                     </div>
-                    <Switch 
-                      id="emailNotifications" 
+                    <Switch
+                      id="emailNotifications"
                       checked={notificationSettings.emailNotifications}
-                      onCheckedChange={() => handleNotificationChange('emailNotifications')}
+                      onCheckedChange={() =>
+                        handleNotificationChange("emailNotifications")
+                      }
                     />
                   </div>
                   <div className="flex items-center justify-between">
@@ -136,10 +139,12 @@ const SettingsPage = () => {
                         Nhận thông báo khi cổ phiếu đạt mức giá đã đặt.
                       </p>
                     </div>
-                    <Switch 
-                      id="priceAlerts" 
+                    <Switch
+                      id="priceAlerts"
                       checked={notificationSettings.priceAlerts}
-                      onCheckedChange={() => handleNotificationChange('priceAlerts')}
+                      onCheckedChange={() =>
+                        handleNotificationChange("priceAlerts")
+                      }
                     />
                   </div>
                   <div className="flex items-center justify-between">
@@ -149,10 +154,12 @@ const SettingsPage = () => {
                         Nhận thông báo khi lệnh của bạn được khớp hoặc hủy.
                       </p>
                     </div>
-                    <Switch 
-                      id="orderUpdates" 
+                    <Switch
+                      id="orderUpdates"
                       checked={notificationSettings.orderUpdates}
-                      onCheckedChange={() => handleNotificationChange('orderUpdates')}
+                      onCheckedChange={() =>
+                        handleNotificationChange("orderUpdates")
+                      }
                     />
                   </div>
                   <div className="flex items-center justify-between">
@@ -162,10 +169,12 @@ const SettingsPage = () => {
                         Nhận thông báo về tin tức thị trường.
                       </p>
                     </div>
-                    <Switch 
-                      id="marketNews" 
+                    <Switch
+                      id="marketNews"
                       checked={notificationSettings.marketNews}
-                      onCheckedChange={() => handleNotificationChange('marketNews')}
+                      onCheckedChange={() =>
+                        handleNotificationChange("marketNews")
+                      }
                     />
                   </div>
                 </div>
@@ -173,35 +182,39 @@ const SettingsPage = () => {
               </CardContent>
             </Card>
           </TabsContent>
-          
+
           <TabsContent value="appearance" className="space-y-4">
             <Card>
               <CardHeader>
                 <CardTitle>Giao diện</CardTitle>
-                <CardDescription>
-                  Tùy chỉnh giao diện ứng dụng.
-                </CardDescription>
+                <CardDescription>Tùy chỉnh giao diện ứng dụng.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-4">
                   <div>
                     <Label>Chủ đề</Label>
                     <div className="flex items-center gap-4 mt-2">
-                      <div 
-                        onClick={() => setTheme('light')}
-                        className={`flex h-10 w-10 items-center justify-center rounded-full border-2 ${theme === 'light' ? 'border-primary' : 'border-muted'} bg-background`}
+                      <div
+                        onClick={() => setTheme("light")}
+                        className={`flex h-10 w-10 items-center justify-center rounded-full border-2 ${
+                          theme === "light" ? "border-primary" : "border-muted"
+                        } bg-background`}
                       >
                         <span className="h-6 w-6 rounded-full bg-[#FFFFFF]" />
                       </div>
-                      <div 
-                        onClick={() => setTheme('dark')}
-                        className={`flex h-10 w-10 items-center justify-center rounded-full border-2 ${theme === 'dark' ? 'border-primary' : 'border-muted'} bg-background`}
+                      <div
+                        onClick={() => setTheme("dark")}
+                        className={`flex h-10 w-10 items-center justify-center rounded-full border-2 ${
+                          theme === "dark" ? "border-primary" : "border-muted"
+                        } bg-background`}
                       >
                         <span className="h-6 w-6 rounded-full bg-[#1A1A1A]" />
                       </div>
-                      <div 
-                        onClick={() => setTheme('system')}
-                        className={`flex h-10 w-10 items-center justify-center rounded-full border-2 ${theme === 'system' ? 'border-primary' : 'border-muted'} bg-background`}
+                      <div
+                        onClick={() => setTheme("system")}
+                        className={`flex h-10 w-10 items-center justify-center rounded-full border-2 ${
+                          theme === "system" ? "border-primary" : "border-muted"
+                        } bg-background`}
                       >
                         <span className="h-6 w-6 rounded-full bg-gradient-to-br from-[#FFFFFF] to-[#1A1A1A]" />
                       </div>
@@ -212,8 +225,8 @@ const SettingsPage = () => {
               </CardContent>
             </Card>
           </TabsContent>
-          
-          <TabsContent value="security" className="space-y-4">
+
+          {/* <TabsContent value="security" className="space-y-4">
             <Card>
               <CardHeader>
                 <CardTitle>Bảo mật</CardTitle>
@@ -242,7 +255,7 @@ const SettingsPage = () => {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
+          </TabsContent> */}
         </Tabs>
       </div>
     </div>

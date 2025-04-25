@@ -1,51 +1,90 @@
-
 export interface User {
-  id: string;
   username: string;
-  fullName: string;
-  email: string;
-  birthDate: string;
-  address: string;
-  phone: string;
-  idNumber: string;
-  gender: 'Nam' | 'Nữ';
-  role: 'investor' | 'employee'; // Add role property
+  HoTen: string;
+  password?: string;
+  Email: string;
+  NgaySinh: string;
+  DiaChi: string;
+  Phone: string;
+  CMND: string;
+  GioiTinh: "Nam" | "Nữ";
+  role: "NhanVien" | "NhaDauTu"; // Add role property
 }
 
 export interface BankAccount {
-  id: string;
-  userId: string;
-  balance: number;
-  bankId: string;
+  MaTK: string;
+  username: string;
+  SoTien: number;
+  MaNH: string;
 }
 
 export interface Bank {
-  id: string;
-  name: string;
-  address: string;
-  phone: string;
-  email: string;
+  MaNH: string;
+  TenNH: string;
+  DiaChi: string;
+  Phone: string;
+  Email: string;
 }
+
+// export interface Stock {
+//   MaCP: string;
+//   TenCty: string;
+//   DiaChi: string;
+//   SoLuongPH?: number;
+//   GiaKhopCuoi?: number;
+//   previousClose?: number;
+//   openPrice?: number;
+//   highPrice?: number;
+//   lowPrice?: number;
+//   TongKLKhop?: number;
+//   TongKLDatMua?: number;
+//   TongKLDatBan?: number;
+//   PhanTramThayDoi?: number;
+//   ThayDoi?: number;
+
+//   GiaTran?: number;
+//   GiaSan?: number;
+//   GiaTC: number;
+// }
 
 export interface Stock {
-  code: string;
-  companyName: string;
-  address: string;
-  totalShares: number;
-  currentPrice: number;
-  previousClose: number;
-  openPrice: number;
-  highPrice: number;
-  lowPrice: number;
-  volume: number;
-  ceilingPrice: number;
-  floorPrice: number;
-  referencePrice: number;
+  MaCP?: string;
+  TenCty?: string;
+  DiaChi?: string;
+  SoLuongPH?: number;
+  GiaDongCua?: number;
+  GiaMoCua?: number;
+  GiaCaoNhat?: number;
+  GiaThapNhat?: number;
+  GiaKhopCuoi?: number;
+  GiaSan?: number;
+  GiaTC?: number;
+  GiaTran?: number;
+  GiaBan1?: number;
+  GiaBan2?: number;
+  GiaBan3?: number;
+  GiaMua1?: number;
+  GiaMua2?: number;
+  GiaMua3?: number;
+  KLBan1?: number;
+  KLBan2?: number;
+  KLBan3?: number;
+  KLMua1?: number;
+  KLMua2?: number;
+  KLMua3?: number;
+  KLKhopCuoi?: number;
+  PhanTramThayDoi?: number;
+  ThayDoi?: number;
+  TongKLDatBan?: number;
+  TongKLDatMua?: number;
+  TongKLKhop?: number;
+
+  Status?: number; // 0: Chưa niêm yết, 1: Đang giao dịch, 2: Ngừng giao dịch
 }
 
-export type OrderType = 'M' | 'B'; // M: Mua (Buy), B: Bán (Sell)
-export type OrderMethod = 'LO' | 'ATO' | 'ATC';
-export type OrderStatus = 'Hủy' | 'Chưa' | 'Một phần' | 'Hết' | 'Chờ';
+export type OrderType = "M" | "B"; // M: Mua (Buy), B: Bán (Sell)
+export type OrderMethod = "LO" | "ATO" | "ATC";
+export type OrderStatus = "Hủy" | "Chưa" | "Một phần" | "Hết" | "Chờ";
 
 export interface Order {
   id: number;
@@ -65,7 +104,7 @@ export interface Transaction {
   date: string;
   quantity: number;
   price: number;
-  matchType: 'Khớp 1 phần' | 'Khớp hết';
+  matchType: "Khớp 1 phần" | "Khớp hết";
 }
 
 export interface StockOwnership {

@@ -1,14 +1,31 @@
-
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { mockUsers, mockBankAccounts, createUser, deleteUser } from "@/utils/mock-data";
+import {
+  mockUsers,
+  mockBankAccounts,
+  createUser,
+  deleteUser,
+} from "@/utils/mock-data";
 import { useToast } from "@/hooks/use-toast";
 import { User } from "@/utils/types";
 import { Search, UserPlus, Trash2, Pencil, Save, X } from "lucide-react";
-import { 
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -29,18 +46,20 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Badge } from "@/components/ui/badge";
-
+import InvestorEditDialog from "@/components/investors/InvestorEditDialog";
 const investorSchema = z.object({
   username: z.string().min(3, "Tên đăng nhập phải có ít nhất 3 ký tự"),
   fullName: z.string().min(2, "Họ tên phải có ít nhất 2 ký tự"),
   email: z.string().email("Email không hợp lệ"),
-  birthDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Ngày sinh phải theo định dạng YYYY-MM-DD"),
+  birthDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Ngày sinh phải theo định dạng YYYY-MM-DD"),
   address: z.string().min(5, "Địa chỉ phải có ít nhất 5 ký tự"),
   phone: z.string().min(10, "Số điện thoại phải có ít nhất 10 ký tự"),
   idNumber: z.string().min(9, "Số CMND phải có ít nhất 9 ký tự"),
   gender: z.enum(["Nam", "Nữ"]),
   initialBalance: z.coerce.number().min(0, "Số dư ban đầu không thể âm"),
-  bankId: z.string().min(1, "Vui lòng chọn ngân hàng")
+  bankId: z.string().min(1, "Vui lòng chọn ngân hàng"),
 });
 
 type InvestorValues = z.infer<typeof investorSchema>;
@@ -49,8 +68,10 @@ const InvestorManagementPage = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const [editingInvestorId, setEditingInvestorId] = useState<string | null>(null);
-  
+  const [editingInvestorId, setEditingInvestorId] = useState<string | null>(
+    null
+  );
+  const [deleteInvestorId, setDeleteInvestorId] = useState<string | null>(null);
   const form = useForm<InvestorValues>({
     resolver: zodResolver(investorSchema),
     defaultValues: {
@@ -63,23 +84,24 @@ const InvestorManagementPage = () => {
       idNumber: "",
       gender: "Nam",
       initialBalance: 0,
-      bankId: "NH001"
+      bankId: "NH001",
     },
   });
 
   // Filter only investors
-  const investors = mockUsers.filter(user => user.role === "investor");
-  
+  const investors = mockUsers.filter((user) => user.role === "investor");
+
   // Filter based on search term
-  const filteredInvestors = investors.filter(investor => 
-    investor.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    investor.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    investor.phone.includes(searchTerm)
+  const filteredInvestors = investors.filter(
+    (investor) =>
+      investor.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      investor.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      investor.phone.includes(searchTerm)
   );
 
   const onSubmit = (values: InvestorValues) => {
     try {
-      const userToCreate: Omit<User, 'id'> = {
+      const userToCreate: Omit<User, "id"> = {
         username: values.username,
         fullName: values.fullName,
         email: values.email,
@@ -88,25 +110,25 @@ const InvestorManagementPage = () => {
         phone: values.phone,
         idNumber: values.idNumber,
         gender: values.gender,
-        role: "investor"
+        role: "investor",
       };
-      
+
       const newUser = createUser(userToCreate);
-      
+
       // Create bank account with initial balance
       if (newUser) {
         // This would be handled in the backend normally, but we're using mock data
         mockBankAccounts.push({
-          id: `TK${String(mockBankAccounts.length + 1).padStart(3, '0')}`,
+          id: `TK${String(mockBankAccounts.length + 1).padStart(3, "0")}`,
           userId: newUser.id,
           balance: values.initialBalance,
-          bankId: values.bankId
+          bankId: values.bankId,
         });
       }
-      
+
       setShowAddDialog(false);
       form.reset();
-      
+
       toast({
         title: "Tạo nhà đầu tư thành công",
         description: `Đã tạo tài khoản cho ${values.fullName}`,
@@ -120,35 +142,51 @@ const InvestorManagementPage = () => {
     }
   };
 
-  const handleDeleteInvestor = (investorId: string) => {
-    if (confirm("Bạn có chắc chắn muốn xóa nhà đầu tư này?")) {
-      const deleted = deleteUser(investorId);
-      
-      if (deleted) {
-        // Also delete their bank accounts
-        const accountIndex = mockBankAccounts.findIndex(acc => acc.userId === investorId);
-        if (accountIndex !== -1) {
-          mockBankAccounts.splice(accountIndex, 1);
-        }
-        
-        toast({
-          title: "Xóa nhà đầu tư thành công",
-          description: "Nhà đầu tư đã được xóa khỏi hệ thống",
-        });
-      } else {
-        toast({
-          title: "Lỗi",
-          description: "Không thể xóa nhà đầu tư. Vui lòng thử lại.",
-          variant: "destructive",
-        });
-      }
+  function handleEditInvestorSave(newData: Omit<User, "id" | "role">) {
+    if (!editingInvestorId) return;
+    const idx = mockUsers.findIndex((u) => u.id === editingInvestorId);
+    if (idx !== -1) {
+      mockUsers[idx] = {
+        ...mockUsers[idx],
+        ...newData,
+      };
+      toast({
+        title: "Cập nhật thành công",
+        description: `Thông tin nhà đầu tư đã được cập nhật.`,
+      });
     }
-  };
+    setEditingInvestorId(null);
+  }
+
+  function handleDeleteInvestorConfirmed() {
+    if (!deleteInvestorId) return;
+    const deleted = deleteUser(deleteInvestorId);
+
+    if (deleted) {
+      const accountIndex = mockBankAccounts.findIndex(
+        (acc) => acc.userId === deleteInvestorId
+      );
+      if (accountIndex !== -1) {
+        mockBankAccounts.splice(accountIndex, 1);
+      }
+      toast({
+        title: "Xóa nhà đầu tư thành công",
+        description: "Nhà đầu tư đã được xóa khỏi hệ thống",
+      });
+    } else {
+      toast({
+        title: "Lỗi",
+        description: "Không thể xóa nhà đầu tư. Vui lòng thử lại.",
+        variant: "destructive",
+      });
+    }
+    setDeleteInvestorId(null);
+  }
 
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Quản lý nhà đầu tư</h1>
-      
+
       <Card>
         <CardHeader>
           <CardTitle>Danh sách nhà đầu tư</CardTitle>
@@ -167,7 +205,7 @@ const InvestorManagementPage = () => {
                 className="pl-9 pr-4 w-full"
               />
             </div>
-            
+
             <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
               <DialogTrigger asChild>
                 <Button>
@@ -182,9 +220,12 @@ const InvestorManagementPage = () => {
                     Điền thông tin để tạo tài khoản cho nhà đầu tư
                   </DialogDescription>
                 </DialogHeader>
-                
+
                 <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <form
+                    onSubmit={form.handleSubmit(onSubmit)}
+                    className="space-y-4"
+                  >
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
@@ -199,7 +240,7 @@ const InvestorManagementPage = () => {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={form.control}
                         name="fullName"
@@ -213,7 +254,7 @@ const InvestorManagementPage = () => {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={form.control}
                         name="email"
@@ -221,13 +262,16 @@ const InvestorManagementPage = () => {
                           <FormItem>
                             <FormLabel>Email</FormLabel>
                             <FormControl>
-                              <Input placeholder="example@email.com" {...field} />
+                              <Input
+                                placeholder="example@email.com"
+                                {...field}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={form.control}
                         name="birthDate"
@@ -241,7 +285,7 @@ const InvestorManagementPage = () => {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={form.control}
                         name="address"
@@ -249,13 +293,16 @@ const InvestorManagementPage = () => {
                           <FormItem>
                             <FormLabel>Địa chỉ</FormLabel>
                             <FormControl>
-                              <Input placeholder="123 Đường ABC, Quận XYZ" {...field} />
+                              <Input
+                                placeholder="123 Đường ABC, Quận XYZ"
+                                {...field}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={form.control}
                         name="phone"
@@ -269,7 +316,7 @@ const InvestorManagementPage = () => {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={form.control}
                         name="idNumber"
@@ -283,7 +330,7 @@ const InvestorManagementPage = () => {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={form.control}
                         name="gender"
@@ -338,7 +385,7 @@ const InvestorManagementPage = () => {
                         )}
                       />
                     </div>
-                    
+
                     <DialogFooter>
                       <Button type="submit">Tạo nhà đầu tư</Button>
                     </DialogFooter>
@@ -347,7 +394,7 @@ const InvestorManagementPage = () => {
               </DialogContent>
             </Dialog>
           </div>
-          
+
           <div className="rounded-md border">
             <Table>
               <TableHeader>
@@ -364,17 +411,27 @@ const InvestorManagementPage = () => {
                 {filteredInvestors.length > 0 ? (
                   filteredInvestors.map((investor) => (
                     <TableRow key={investor.id}>
-                      <TableCell className="font-medium">{investor.id}</TableCell>
+                      <TableCell className="font-medium">
+                        {investor.id}
+                      </TableCell>
                       <TableCell>{investor.fullName}</TableCell>
                       <TableCell>{investor.email}</TableCell>
                       <TableCell>{investor.phone}</TableCell>
                       <TableCell>{investor.idNumber}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end items-center space-x-2">
-                          <Button variant="outline" size="icon" onClick={() => setEditingInvestorId(investor.id)}>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => setEditingInvestorId(investor.id)}
+                          >
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button variant="outline" size="icon" onClick={() => handleDeleteInvestor(investor.id)}>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => setDeleteInvestorId(investor.id)}
+                          >
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
                         </div>
@@ -383,8 +440,13 @@ const InvestorManagementPage = () => {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-6 text-muted-foreground">
-                      {searchTerm ? "Không tìm thấy nhà đầu tư phù hợp" : "Chưa có nhà đầu tư nào trong hệ thống"}
+                    <TableCell
+                      colSpan={6}
+                      className="text-center py-6 text-muted-foreground"
+                    >
+                      {searchTerm
+                        ? "Không tìm thấy nhà đầu tư phù hợp"
+                        : "Chưa có nhà đầu tư nào trong hệ thống"}
                     </TableCell>
                   </TableRow>
                 )}
@@ -393,6 +455,46 @@ const InvestorManagementPage = () => {
           </div>
         </CardContent>
       </Card>
+      <InvestorEditDialog
+        open={!!editingInvestorId}
+        onOpenChange={(open) =>
+          setEditingInvestorId(open ? editingInvestorId : null)
+        }
+        investor={
+          editingInvestorId
+            ? investors.find((u) => u.id === editingInvestorId) || null
+            : null
+        }
+        onSave={handleEditInvestorSave}
+      />
+
+      <Dialog
+        open={!!deleteInvestorId}
+        onOpenChange={(open) =>
+          setDeleteInvestorId(open ? deleteInvestorId : null)
+        }
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Xác nhận xóa nhà đầu tư</DialogTitle>
+            <DialogDescription>
+              Bạn có chắc chắn muốn xóa nhà đầu tư này? Thao tác này không thể
+              hoàn tác.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteInvestorId(null)}>
+              Hủy
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteInvestorConfirmed}
+            >
+              Xóa
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

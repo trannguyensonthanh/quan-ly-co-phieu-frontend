@@ -1,16 +1,22 @@
-
-import { useState } from 'react';
-import { Input } from '@/components/ui/input';
-import { mockStocks } from '@/utils/mock-data';
-import StockCard from './StockCard';
-import { Search } from 'lucide-react';
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { mockStocks } from "@/utils/mock-data";
+import StockCard from "./StockCard";
+import { Search } from "lucide-react";
+import {
+  useGetStockMarketDataQuery,
+  useMarketBoardQuery,
+} from "@/queries/stock.queries";
 
 const StockList = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  
-  const filteredStocks = mockStocks.filter(stock => 
-    stock.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    stock.companyName.toLowerCase().includes(searchTerm.toLowerCase())
+  const [searchTerm, setSearchTerm] = useState("");
+  const { data: stockMarketData, isLoading } = useMarketBoardQuery({
+    refetchInterval: 1000 * 15,
+  });
+  const filteredStocks = stockMarketData?.filter(
+    (stock) =>
+      stock?.MaCP?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      stock?.TenCty?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -24,15 +30,17 @@ const StockList = () => {
           className="pl-9 pr-4"
         />
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredStocks.length > 0 ? (
-          filteredStocks.map(stock => (
-            <StockCard key={stock.code} stock={stock} />
+        {filteredStocks?.length > 0 ? (
+          filteredStocks?.map((stock) => (
+            <StockCard key={stock.MaCP} stock={stock} />
           ))
         ) : (
           <div className="col-span-full text-center py-8">
-            <p className="text-muted-foreground">Không tìm thấy cổ phiếu phù hợp với từ khóa "{searchTerm}"</p>
+            <p className="text-muted-foreground">
+              Không tìm thấy cổ phiếu phù hợp với từ khóa "{searchTerm}"
+            </p>
           </div>
         )}
       </div>

@@ -1,8 +1,7 @@
-
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, Settings } from "lucide-react";
+import { Menu, X, Settings, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { ModeToggle } from "@/components/ui/mode-toggle";
 import { UserNav } from "@/components/ui/user-nav";
@@ -27,6 +26,7 @@ import {
   MenubarSeparator,
   MenubarTrigger,
 } from "@/components/ui/menubar";
+import { useLogoutMutation } from "@/queries/auth.queries";
 
 export type HeaderProps = {
   toggleSidebar: () => void;
@@ -40,9 +40,20 @@ const Header = ({ toggleSidebar, isSidebarOpen }: HeaderProps) => {
   const isMobile = useIsMobile();
   const [scrolled, setScrolled] = useState(false);
 
+  const {
+    mutate: logoutMutation,
+    isPending: isLogoutPending,
+    isError: isLogoutError,
+    error: logoutError,
+    isSuccess: isLogoutSuccess,
+    data: logoutData,
+  } = useLogoutMutation();
+
   const handleLogout = () => {
-    logout();
-    navigate("/login");
+    logoutMutation();
+    if (isLogoutSuccess) {
+      logout();
+    }
   };
 
   useEffect(() => {
@@ -65,28 +76,34 @@ const Header = ({ toggleSidebar, isSidebarOpen }: HeaderProps) => {
         scrolled && "shadow-sm"
       )}
     >
+      <div className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2">
+          <img
+            src="https://i.imgur.com/jipFADU.png"
+            alt="Logo"
+            className="h-[45px] w-[150px]"
+          />
+          {/* <img
+            src="https://i.imgur.com/jipFADU.png"
+            alt="Logo"
+            className="h-[45px] w-[150px]"
+          /> */}
+        </Link>
+      </div>
+
       <Button
         variant="outline"
         size="icon"
-        className="mr-2 md:hidden"
+        className="mr-2"
         onClick={toggleSidebar}
       >
         {isSidebarOpen ? (
-          <X className="h-5 w-5" />
+          <ArrowLeft className="h-5 w-5" />
         ) : (
           <Menu className="h-5 w-5" />
         )}
         <span className="sr-only">Toggle Menu</span>
       </Button>
-      
-      <div className="flex items-center gap-2">
-        <Link to="/" className="flex items-center gap-2">
-          <img src="/placeholder.svg" alt="Logo" className="h-8 w-8" />
-          <span className="hidden font-bold md:inline-block">
-            Hanoi Stock Exchange
-          </span>
-        </Link>
-      </div>
 
       {isAuthenticated && !isMobile && (
         <div className="ml-4 flex-1">
@@ -101,11 +118,17 @@ const Header = ({ toggleSidebar, isSidebarOpen }: HeaderProps) => {
                         <Link
                           className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
                           to="/price-board"
+                          style={{
+                            backgroundImage:
+                              "url('https://i.imgur.com/qJkLiUr.png')",
+                            backgroundSize: "cover",
+                            backgroundPosition: "center",
+                          }}
                         >
-                          <div className="mb-2 mt-4 text-lg font-medium">
+                          <div className="mb-2 mt-4 text-xl font-bold text-white">
                             Bảng giá
                           </div>
-                          <p className="text-sm leading-tight text-muted-foreground">
+                          <p className="text-sm leading-tight text-white font-bold">
                             Xem bảng giá cổ phiếu trực tuyến
                           </p>
                         </Link>
@@ -117,7 +140,9 @@ const Header = ({ toggleSidebar, isSidebarOpen }: HeaderProps) => {
                           to="/stocks"
                           className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                         >
-                          <div className="text-sm font-medium leading-none">Danh sách cổ phiếu</div>
+                          <div className="text-sm font-medium leading-none">
+                            Danh sách cổ phiếu
+                          </div>
                           <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
                             Xem tất cả cổ phiếu đang giao dịch
                           </p>
@@ -131,7 +156,9 @@ const Header = ({ toggleSidebar, isSidebarOpen }: HeaderProps) => {
                             to="/trading"
                             className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                           >
-                            <div className="text-sm font-medium leading-none">Đặt lệnh</div>
+                            <div className="text-sm font-medium leading-none">
+                              Đặt lệnh
+                            </div>
                             <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
                               Đặt lệnh mua/bán cổ phiếu
                             </p>
@@ -146,7 +173,9 @@ const Header = ({ toggleSidebar, isSidebarOpen }: HeaderProps) => {
                             to="/portfolio"
                             className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                           >
-                            <div className="text-sm font-medium leading-none">Danh mục đầu tư</div>
+                            <div className="text-sm font-medium leading-none">
+                              Danh mục đầu tư
+                            </div>
                             <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
                               Quản lý danh mục đầu tư của bạn
                             </p>
@@ -167,7 +196,9 @@ const Header = ({ toggleSidebar, isSidebarOpen }: HeaderProps) => {
                           to="/balance"
                           className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                         >
-                          <div className="text-sm font-medium leading-none">Số dư tài khoản</div>
+                          <div className="text-sm font-medium leading-none">
+                            Số dư tài khoản
+                          </div>
                           <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
                             Kiểm tra số dư tài khoản của bạn
                           </p>
@@ -180,7 +211,9 @@ const Header = ({ toggleSidebar, isSidebarOpen }: HeaderProps) => {
                           to="/order-history"
                           className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                         >
-                          <div className="text-sm font-medium leading-none">Lịch sử đặt lệnh</div>
+                          <div className="text-sm font-medium leading-none">
+                            Lịch sử đặt lệnh
+                          </div>
                           <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
                             Xem lịch sử đặt lệnh của bạn
                           </p>
@@ -193,7 +226,9 @@ const Header = ({ toggleSidebar, isSidebarOpen }: HeaderProps) => {
                           to="/transaction-history"
                           className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                         >
-                          <div className="text-sm font-medium leading-none">Lịch sử khớp lệnh</div>
+                          <div className="text-sm font-medium leading-none">
+                            Lịch sử khớp lệnh
+                          </div>
                           <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
                             Xem lịch sử khớp lệnh của bạn
                           </p>
@@ -206,7 +241,9 @@ const Header = ({ toggleSidebar, isSidebarOpen }: HeaderProps) => {
                           to="/reports/stock-orders"
                           className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                         >
-                          <div className="text-sm font-medium leading-none">Sao kê lệnh đặt</div>
+                          <div className="text-sm font-medium leading-none">
+                            Sao kê lệnh đặt
+                          </div>
                           <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
                             Xem sao kê lệnh đặt
                           </p>
@@ -227,7 +264,9 @@ const Header = ({ toggleSidebar, isSidebarOpen }: HeaderProps) => {
                             to="/admin/users"
                             className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                           >
-                            <div className="text-sm font-medium leading-none">Quản lý người dùng</div>
+                            <div className="text-sm font-medium leading-none">
+                              Quản lý người dùng
+                            </div>
                             <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
                               Thêm, sửa, xóa tài khoản người dùng
                             </p>
@@ -240,7 +279,9 @@ const Header = ({ toggleSidebar, isSidebarOpen }: HeaderProps) => {
                             to="/admin/investors"
                             className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                           >
-                            <div className="text-sm font-medium leading-none">Quản lý nhà đầu tư</div>
+                            <div className="text-sm font-medium leading-none">
+                              Quản lý nhà đầu tư
+                            </div>
                             <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
                               Quản lý thông tin nhà đầu tư
                             </p>
@@ -253,7 +294,9 @@ const Header = ({ toggleSidebar, isSidebarOpen }: HeaderProps) => {
                             to="/admin/stocks"
                             className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                           >
-                            <div className="text-sm font-medium leading-none">Quản lý cổ phiếu</div>
+                            <div className="text-sm font-medium leading-none">
+                              Quản lý cổ phiếu
+                            </div>
                             <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
                               Thêm, sửa, xóa thông tin cổ phiếu
                             </p>
@@ -266,7 +309,9 @@ const Header = ({ toggleSidebar, isSidebarOpen }: HeaderProps) => {
                             to="/admin/funds"
                             className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                           >
-                            <div className="text-sm font-medium leading-none">Quản lý tiền</div>
+                            <div className="text-sm font-medium leading-none">
+                              Quản lý tiền
+                            </div>
                             <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
                               Nạp/rút tiền cho nhà đầu tư
                             </p>
@@ -279,7 +324,9 @@ const Header = ({ toggleSidebar, isSidebarOpen }: HeaderProps) => {
                             to="/admin/backup"
                             className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                           >
-                            <div className="text-sm font-medium leading-none">Sao lưu dữ liệu</div>
+                            <div className="text-sm font-medium leading-none">
+                              Sao lưu dữ liệu
+                            </div>
                             <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
                               Sao lưu và khôi phục dữ liệu
                             </p>
@@ -300,19 +347,19 @@ const Header = ({ toggleSidebar, isSidebarOpen }: HeaderProps) => {
           </NavigationMenu>
         </div>
       )}
-      
+
       <div className="flex-1 md:flex-none" />
-      
+
       <div className="flex items-center gap-2">
         {isAuthenticated && (
-          <NotificationCenter 
+          <NotificationCenter
             notifications={notifications}
             onMarkAsRead={markAsRead}
             onClearAll={clearAll}
           />
         )}
         <ModeToggle />
-        
+
         {isAuthenticated ? (
           <UserNav user={user} onLogout={handleLogout} />
         ) : (
