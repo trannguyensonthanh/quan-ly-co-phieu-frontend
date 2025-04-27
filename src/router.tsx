@@ -27,6 +27,8 @@ import FundManagementPage from "@/pages/FundManagementPage";
 import DatabaseBackupPage from "@/pages/DatabaseBackupPage";
 import PasswordChangePage from "./pages/PasswordChangePage";
 import NotFound from "@/pages/NotFound";
+import StockAllocationPage from "@/pages/StockAllocationPage";
+import ResetPasswordPage from "@/pages/ResetPasswordPage";
 
 export default function MyRouter() {
   return (
@@ -36,6 +38,8 @@ export default function MyRouter() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route element={<MainLayout />}>
           <Route path="/stocks" element={<StocksPage />} />
           <Route path="/price-board" element={<PriceBoardPage />} />
@@ -75,6 +79,8 @@ export default function MyRouter() {
               path="/admin/change-password"
               element={<PasswordChangePage />}
             />
+            {/* Add the new route for StockAllocationPage */}
+            <Route path="/stock-allocation" element={<StockAllocationPage />} />
             <Route
               path="/reports/money-transactions"
               element={<MoneyTransactionReportPage />}

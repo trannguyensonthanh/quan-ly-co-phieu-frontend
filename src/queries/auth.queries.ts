@@ -148,3 +148,38 @@ export const useMyProfileQuery = () => {
 
   return useQuery(options);
 };
+
+/**
+ * Hook cho chức năng Quên mật khẩu (Forgot Password).
+ */
+export const useForgotPasswordMutation = () => {
+  return useMutation<any, Error, { email: string }>({
+    mutationFn: ({ email }) => AuthService.forgotPassword(email),
+    onSuccess: (data) => {
+      console.log("Forgot password email sent successfully:", data);
+      // Hiển thị thông báo thành công cho người dùng
+    },
+    onError: (error) => {
+      console.error("Forgot password request failed:", error);
+      // Hiển thị lỗi cho người dùng
+    },
+  });
+};
+
+/**
+ * Hook cho chức năng Đặt lại mật khẩu (Reset Password).
+ */
+export const useResetPasswordMutation = () => {
+  return useMutation<any, Error, { token: string; newPassword: string }>({
+    mutationFn: ({ token, newPassword }) =>
+      AuthService.resetPassword(token, newPassword),
+    onSuccess: (data) => {
+      console.log("Password reset successfully:", data);
+      // Hiển thị thông báo thành công cho người dùng
+    },
+    onError: (error) => {
+      console.error("Password reset failed:", error);
+      // Hiển thị lỗi cho người dùng
+    },
+  });
+};

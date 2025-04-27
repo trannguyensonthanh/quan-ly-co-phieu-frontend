@@ -25,6 +25,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { useForgotPasswordMutation } from "@/queries/auth.queries";
 
 const forgotPasswordSchema = z.object({
   email: z.string().email("Email không hợp lệ"),
@@ -35,7 +36,8 @@ type ForgotPasswordValues = z.infer<typeof forgotPasswordSchema>;
 const ForgotPasswordPage = () => {
   const { toast } = useToast();
   const [submitted, setSubmitted] = useState(false);
-
+  const forgotPasswordMutation = useForgotPasswordMutation();
+  const [loading, setLoading] = useState(false);
   const form = useForm<ForgotPasswordValues>({
     resolver: zodResolver(forgotPasswordSchema),
     defaultValues: {
@@ -43,25 +45,31 @@ const ForgotPasswordPage = () => {
     },
   });
 
-  const onSubmit = (values: ForgotPasswordValues) => {
-    // Check if email exists in our users
-    const userExists = mockUsers.some((user) => user.email === values.email);
+  const onSubmit = async (values: ForgotPasswordValues) => {
+    setLoading(true);
 
-    if (userExists) {
-      // In a real app, this would send an email with a reset link
-      setSubmitted(true);
-
-      toast({
-        title: "Yêu cầu đã được gửi",
-        description: "Hướng dẫn đặt lại mật khẩu đã được gửi đến email của bạn",
-      });
-    } else {
-      toast({
-        title: "Email không tồn tại",
-        description: "Không tìm thấy tài khoản với địa chỉ email này",
-        variant: "destructive",
-      });
-    }
+    forgotPasswordMutation.mutate(
+      { email: values.email },
+      {
+        onSuccess: () => {
+          setLoading(false);
+          setSubmitted(true);
+          toast({
+            title: "Yêu cầu đã được gửi",
+            description:
+              "Hướng dẫn đặt lại mật khẩu đã được gửi đến email của bạn",
+          });
+        },
+        onError: () => {
+          toast({
+            title: "Đã xảy ra lỗi",
+            description:
+              "Không thể gửi yêu cầu đặt lại mật khẩu. Vui lòng thử lại.",
+            variant: "destructive",
+          });
+        },
+      }
+    );
   };
 
   if (submitted) {
@@ -138,14 +146,16 @@ const ForgotPasswordPage = () => {
                 <Button
                   type="submit"
                   className="w-full bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+                  disabled={loading}
                 >
-                  Gửi hướng dẫn đặt lại
+                  {loading ? "Đang gửi..." : "Gửi hướng dẫn đặt lại"}
                 </Button>
 
                 <Button
                   asChild
                   variant="outline"
                   className="w-full border-gray-300 text-gray-900 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-100 dark:hover:bg-gray-700"
+                  disabled={loading}
                 >
                   <Link
                     to="/login"

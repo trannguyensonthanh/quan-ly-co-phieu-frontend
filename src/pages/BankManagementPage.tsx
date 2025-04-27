@@ -43,6 +43,7 @@ import { Bank } from "@/utils/types";
 import BankEditDialog from "@/components/banks/BankEditDialog";
 import {
   useCreateBankMutation,
+  useDeleteBankMutation,
   useGetAllBanksQuery,
   useUpdateBankMutation,
 } from "@/queries/bank.queries";
@@ -117,6 +118,7 @@ const BankManagementPage = () => {
   const { data: fetchedBanks, isLoading } = useGetAllBanksQuery();
   const createBankMutation = useCreateBankMutation();
   const updateBankMutation = useUpdateBankMutation();
+  const deleteBankMutation = useDeleteBankMutation();
   // Update banks state when fetchedBanks changes
   useEffect(() => {
     if (fetchedBanks) {
@@ -180,19 +182,33 @@ const BankManagementPage = () => {
   };
 
   // Delete bank
-  const handleDelete = (bankId: string) => {
+  const handleDelete = async (bankId: string) => {
     try {
-      const updatedBanks = banks.filter((bank) => bank.MaNH !== bankId);
-      setBanks(updatedBanks);
+      await deleteBankMutation.mutateAsync(
+        { maNH: bankId },
+        {
+          onSuccess: () => {
+            const updatedBanks = banks.filter((bank) => bank.MaNH !== bankId);
+            setBanks(updatedBanks);
 
-      toast({
-        title: "Xóa ngân hàng thành công",
-        description: "Ngân hàng đã được xóa khỏi hệ thống",
-      });
+            toast({
+              title: "Xóa ngân hàng thành công",
+              description: "Ngân hàng đã được xóa khỏi hệ thống",
+            });
+          },
+          onError: (error) => {
+            toast({
+              title: "Lỗi xóa ngân hàng",
+              description: error?.message || "Đã xảy ra lỗi khi xóa ngân hàng",
+              variant: "destructive",
+            });
+          },
+        }
+      );
     } catch (error) {
       toast({
-        title: "Lỗi xóa ngân hàng",
-        description: "Đã xảy ra lỗi khi xóa ngân hàng",
+        title: "Lỗi",
+        description: error?.message || "Đã xảy ra lỗi không xác định",
         variant: "destructive",
       });
     } finally {
@@ -405,9 +421,18 @@ const BankManagementPage = () => {
                             <Edit className="h-4 w-4 mr-1" />
                             Sửa
                           </Button>
-                          <Dialog>
+                          <Dialog
+                            open={confirmDeleteId === bank.MaNH} // Kiểm tra xem Dialog có mở cho ngân hàng hiện tại không
+                            onOpenChange={(isOpen) => {
+                              if (!isOpen) setConfirmDeleteId(null); // Đóng Dialog khi trạng thái thay đổi
+                            }}
+                          >
                             <DialogTrigger asChild>
-                              <Button variant="destructive" size="sm">
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => setConfirmDeleteId(bank.MaNH)} // Mở Dialog cho ngân hàng hiện tại
+                              >
                                 <Trash2 className="h-4 w-4 mr-1" />
                                 Xóa
                               </Button>
@@ -419,20 +444,22 @@ const BankManagementPage = () => {
                                 </DialogTitle>
                                 <DialogDescription>
                                   Bạn có chắc chắn muốn xóa ngân hàng{" "}
-                                  {bank.TenNH}? Hành động này không thể hoàn
-                                  tác.
+                                  <span className="font-bold">
+                                    {bank.TenNH}
+                                  </span>
+                                  ? Hành động này không thể hoàn tác.
                                 </DialogDescription>
                               </DialogHeader>
                               <DialogFooter>
                                 <Button
                                   variant="outline"
-                                  onClick={() => setConfirmDeleteId(null)}
+                                  onClick={() => setConfirmDeleteId(null)} // Đóng Dialog khi nhấn "Hủy"
                                 >
                                   Hủy
                                 </Button>
                                 <Button
                                   variant="destructive"
-                                  onClick={() => handleDelete(bank.MaNH)}
+                                  onClick={() => handleDelete(bank.MaNH)} // Gọi hàm xóa ngân hàng
                                 >
                                   Xóa ngân hàng
                                 </Button>

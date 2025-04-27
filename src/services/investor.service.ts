@@ -56,6 +56,7 @@ export interface PortfolioItem {
   MaCP: string;
   TenCty?: string; // Có thể có tên cty
   SoLuong: number;
+  GiaKhopCuoi?: number;
 }
 export type PortfolioResponse = PortfolioItem[];
 
@@ -159,7 +160,7 @@ const getInvestorPortfolio = (maNDT: string): Promise<PortfolioResponse> => {
 
 // --- Xem Sao kê NDT (cho Admin) ---
 
-/** Lấy sao kê lệnh của NDT */
+/** Lấy sao kê lệnh đặt của NDT dựa trên mã nhà đầu tư */
 const getInvestorOrderStatement = (
   maNDT: string,
   tuNgay: string,
@@ -174,7 +175,7 @@ const getInvestorOrderStatement = (
   return apiHelper.get(`${API_URL}/${maNDT}/statement/orders`, token, params);
 };
 
-/** Lấy sao kê lệnh khớp của NDT */
+/** Lấy sao kê lệnh khớp của NDT dựa trên mã nhà đầu tư */
 const getInvestorMatchedOrderStatement = (
   maNDT: string,
   tuNgay: string,

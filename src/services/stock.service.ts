@@ -15,6 +15,16 @@ export interface CoPhieu {
   Status?: number; // 0: Chưa niêm yết, 1: Đang giao dịch, 2: Ngừng giao dịch
 }
 
+// --- THÊM KIỂU DỮ LIỆU CỔ ĐÔNG ---
+export interface ShareholderInfo {
+  MaNDT: string;
+  TenNDT?: string | null;
+  Email?: string | null;
+  Phone?: string | null;
+  SoLuong: number;
+}
+export type ShareholdersResponse = ShareholderInfo[];
+
 // Kiểu dữ liệu để tạo mới cổ phiếu
 export type CreateCoPhieuPayload = Omit<CoPhieu, "">; // Có thể dùng thẳng CoPhieu
 
@@ -91,7 +101,7 @@ const deleteStock = (maCP: string): Promise<{ message: string }> => {
 };
 
 /**
- * Lấy sao kê lệnh của một mã cổ phiếu trong khoảng thời gian.
+ * Lấy sao kê lệnh đặt của một mã cổ phiếu trong khoảng thời gian.
  * @param maCP Mã cổ phiếu.
  * @param tuNgay Ngày bắt đầu (YYYY-MM-DD).
  * @param denNgay Ngày kết thúc (YYYY-MM-DD).
@@ -119,6 +129,17 @@ const getAllStocksForAdmin = (): Promise<CoPhieu[]> => {
 };
 
 /**
+ * Lấy danh sách cổ phiếu dựa vào trạng thái.
+ * @param status Trạng thái của cổ phiếu (0: Chưa niêm yết, 1: Đang giao dịch, 2: Ngừng giao dịch).
+ */
+const getStocksByStatus = (status: number): Promise<CoPhieu[]> => {
+  const token = TokenService.getLocalAccessToken();
+  if (status == null)
+    return Promise.reject(new Error("Trạng thái là bắt buộc"));
+  return apiHelper.get(`${API_URL}/status/${status}`, token);
+};
+
+/**
  * Ngừng giao dịch một cổ phiếu (chuyển Status từ 1 -> 2).
  * @param maCP Mã cổ phiếu cần ngừng giao dịch.
  */
@@ -127,6 +148,16 @@ const delistStock = (maCP: string): Promise<CoPhieu> => {
   if (!maCP) return Promise.reject(new Error("Mã CP là bắt buộc"));
   return apiHelper.put(`${API_URL}/${maCP}/delist`, {}, token);
 };
+
+// /**
+//  * Mở giao dịch một cổ phiếu (chuyển Status từ 2 -> 1).
+//  * @param maCP Mã cổ phiếu cần mở giao dịch.
+//  */
+// const openStock = (maCP: string): Promise<CoPhieu> => {
+//   const token = TokenService.getLocalAccessToken();
+//   if (!maCP) return Promise.reject(new Error("Mã CP là bắt buộc"));
+//   return apiHelper.put(`${API_URL}/${maCP}/open`, {}, token);
+// };
 
 /**
  * Niêm yết một cổ phiếu (chuyển Status từ 0 -> 1, thêm giá tham chiếu ban đầu).
@@ -176,6 +207,25 @@ const getStockPriceHistory = (
   return apiHelper.get(`${API_URL}/${maCP}/history`, token, params);
 };
 
+/**
+ * Lấy tổng số lượng đã phân bổ của một mã cổ phiếu.
+ * @param maCP Mã cổ phiếu.
+ */
+const getTotalDistributedQuantity = (
+  maCP: string
+): Promise<{ totalDistributed: number }> => {
+  const token = TokenService.getLocalAccessToken();
+  if (!maCP) return Promise.reject(new Error("Mã CP là bắt buộc"));
+  return apiHelper.get(`${API_URL}/${maCP}/distributed-quantity`, token);
+};
+
+/** Lấy danh sách cổ đông của một mã cổ phiếu */
+const getShareholders = (maCP: string): Promise<ShareholdersResponse> => {
+  const token = TokenService.getLocalAccessToken();
+  if (!maCP) return Promise.reject(new Error("Mã CP là bắt buộc"));
+  return apiHelper.get(`${API_URL}/${maCP}/shareholders`, token);
+};
+
 // Export service object
 const StockService = {
   getAllStocks,
@@ -185,10 +235,14 @@ const StockService = {
   deleteStock,
   getStockOrders,
   getAllStocksForAdmin,
+  getStocksByStatus,
   delistStock,
   listStock,
+  // openStock,
   getLatestUndoInfo,
   getStockPriceHistory,
+  getTotalDistributedQuantity,
+  getShareholders,
 };
 
 export default StockService;

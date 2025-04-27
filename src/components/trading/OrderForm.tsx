@@ -40,6 +40,7 @@ import {
   usePlaceOrderMutation,
 } from "@/queries/trading.queries";
 import { useGetMyStockQuantityQuery } from "@/queries/portfolio.queries";
+import { useGetMyOrdersTodayQuery } from "@/queries/statement.queries";
 
 interface OrderFormProps {
   initialOrderType?: OrderType;
@@ -73,8 +74,9 @@ const OrderForm = ({
     data: selectedStock,
     isLoading: isLoadingMarketData,
     refetch: refetchMarketData,
-  } = useGetStockMarketDataQuery(stockCode);
-  const modifyOrderMutation = useModifyOrderMutation();
+  } = useGetStockMarketDataQuery(stockCode); // Hook để lấy dữ liệu thị trường chi tiết của một mã cổ phiếu.
+  const modifyOrderMutation = useModifyOrderMutation(); // Hook để sửa lệnh LO
+  const { refetch: refetchOrdersToday } = useGetMyOrdersTodayQuery();
   useEffect(() => {
     if (stockCode) {
       refetchMarketData();
@@ -145,14 +147,14 @@ const OrderForm = ({
     }
   }, [orderToModify, form]);
   const { data: allStocks, isLoading: isLoadingStocks } =
-    useGetAllStocksQuery();
+    useGetAllStocksQuery(); // Hook để lấy danh sách tất cả cổ phiếu đang giao dịch
 
   // Lây thông tin tài khoản ngân hàng của nhà đầu tư
   const {
     data: bankAccounts,
     isLoading: isLoadingBankAccounts,
     refetch: isRefetchBankAccounts,
-  } = useGetInvestorBankAccountsQuery(user?.username);
+  } = useGetInvestorBankAccountsQuery(user?.username); // Hook lấy danh sách TKNH của một NĐT
   const [accountInfo, setAccountInfo] = useState(null); // Use state for account info
 
   useEffect(() => {
@@ -182,7 +184,7 @@ const OrderForm = ({
   const {
     data: myStockQuantity,
     isLoading: isLoadingMyStockQuantity,
-    refetch: isRefetchMyStockQuantity,
+    refetch: isRefetchMyStockQuantity, // Hook để lấy số lượng sở hữu của một mã cổ phiếu cụ thể cho NĐT đang đăng nhập.
   } = useGetMyStockQuantityQuery(stockCode.trim());
 
   useEffect(() => {
@@ -315,7 +317,6 @@ const OrderForm = ({
         newSoLuong: data.SoLuong,
         newGia: data.Gia,
       };
-      console.log(updatedOrderData);
       modifyOrderMutation.mutate(
         { maGD: orderToModify.MaGD, updatedOrderData },
         {
@@ -360,6 +361,7 @@ const OrderForm = ({
         }
       );
     }
+    refetchOrdersToday();
   };
 
   const calculateOrderValue = () => {

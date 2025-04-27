@@ -212,6 +212,28 @@ const changePassword = (
   return apiHelper.put(`${API_URL}/change-password`, payload, token);
 };
 
+/**
+ * Gửi email để reset mật khẩu.
+ * @param email Địa chỉ email của user.
+ * @returns Promise chứa message thành công hoặc lỗi.
+ */
+const forgotPassword = (email: string): Promise<SimpleMessageResponse> => {
+  return apiHelper.post(`${API_URL}/forgot-password`, { email });
+};
+
+/**
+ * Đặt lại mật khẩu mới bằng token.
+ * @param token Token được gửi qua email.
+ * @param newPassword Mật khẩu mới.
+ * @returns Promise chứa message thành công hoặc lỗi.
+ */
+const resetPassword = (
+  token: string,
+  newPassword: string
+): Promise<SimpleMessageResponse> => {
+  return apiHelper.post(`${API_URL}/reset-password`, { token, newPassword });
+};
+
 // Export service object
 const AuthService = {
   signup,
@@ -219,6 +241,8 @@ const AuthService = {
   logout,
   changePassword,
   getCurrentUser: TokenService.getLocalUser, // Tiện ích lấy user đang đăng nhập
+  forgotPassword,
+  resetPassword,
 };
 
 export default AuthService;

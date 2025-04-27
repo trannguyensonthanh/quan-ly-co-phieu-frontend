@@ -36,6 +36,7 @@ import { useState } from "react";
 import {
   useGetMarketStatusQuery,
   usePrepareNextDayPricesMutation,
+  useRelistStockMutation,
   useSetMarketModeAutoMutation,
   useSetMarketModeManualMutation,
   useTriggerATCMutation,
@@ -43,6 +44,7 @@ import {
   useTriggerContinuousMutation,
 } from "@/queries/admin.queries";
 import { Clock, AlertCircle, Settings2, Layers, Info } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 const StockManagementPage = () => {
   const { toast } = useToast();
   const {
@@ -86,12 +88,14 @@ const StockManagementPage = () => {
   const delistStockMutation = useDelistStockMutation(); // Ngừng giao dịch cổ phiếu
   const listStockMutation = useListStockMutation(); // Niêm yết cổ phiếu
   const prepareNextDayPricesMutation = usePrepareNextDayPricesMutation(); // Chuẩn bị dữ liệu cho ngày tiếp theo
-  const { data: undoLogs, refetch: refetchUndoLogs } = useGetAllUndoLogsQuery();
+  const { data: undoLogs, refetch: refetchUndoLogs } = useGetAllUndoLogsQuery(); // lấy tất cả undo cổ phiếu
   const triggerATOMutation = useTriggerATOMutation();
   const triggerContinuousMutation = useTriggerContinuousMutation();
   const triggerATCMutation = useTriggerATCMutation();
   const setMarketModeAutoMutation = useSetMarketModeAutoMutation();
   const setMarketModeManualMutation = useSetMarketModeManualMutation();
+  const relistStockMutation = useRelistStockMutation(); // Mở giao dịch cổ phiếu
+  const navigate = useNavigate();
   const {
     data: marketStatus,
     isLoading: isMarketStatusLoading,
@@ -197,10 +201,10 @@ const StockManagementPage = () => {
     );
   };
 
-  const handleListStock = (stock: Stock) => {
-    setStockToList(stock);
-    setShowListingDialog(true);
-  };
+  // const handleListStock = (stock: Stock) => {
+  //   setStockToList(stock);
+  //   setShowListingDialog(true);
+  // };
 
   const handleHaltStock = (stock: Stock) => {
     setStockToHalt(stock);
@@ -225,21 +229,47 @@ const StockManagementPage = () => {
     setShowDialog(true);
   };
 
-  const handleResumeStock = (stock: Stock) => {
-    const newStocks = stocks.map((s) => {
-      if (s.MaCP === stock.MaCP) {
-        return { ...s, Status: 1 };
-      }
-      return s;
-    });
+  const handleResumeStock = async (stock: Stock) => {
+    try {
+      console.log(stock);
+      await relistStockMutation.mutateAsync(
+        { maCP: stock.MaCP, giaTC: stock.GiaTC || 0 },
+        {
+          onSuccess: () => {
+            const updatedStocks = stocks.map((s) => {
+              if (s.MaCP === stock.MaCP) {
+                return { ...s, Status: 1 };
+              }
+              return s;
+            });
 
-    saveToHistory(newStocks);
-    setStocks(newStocks);
+            saveToHistory(updatedStocks);
+            setStocks(updatedStocks);
 
-    toast({
-      title: "Mở giao dịch cổ phiếu thành công",
-      description: `Đã mở giao dịch cổ phiếu ${stock.MaCP}`,
-    });
+            toast({
+              title: "Mở giao dịch cổ phiếu thành công",
+              description: `Đã mở giao dịch cổ phiếu ${stock.MaCP}`,
+            });
+          },
+          onError: (error) => {
+            toast({
+              title: "Lỗi",
+              description:
+                error.message ||
+                "Không thể mở giao dịch cổ phiếu. Vui lòng thử lại.",
+              variant: "destructive",
+            });
+          },
+        }
+      );
+    } catch (error) {
+      toast({
+        title: "Lỗi",
+        description:
+          error.message || "Không thể thực hiện thao tác. Vui lòng thử lại.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Hàm xử lý khi người dùng nhấn nút "Thêm" hoặc "Cập nhật" trong form
@@ -431,57 +461,57 @@ const StockManagementPage = () => {
   const onListingSubmit = async (values: any) => {
     if (!stockToList) return;
     console.log("Listing stock:", stockToList, values);
-    try {
-      const GiaTC = values.GiaTC;
+    // try {
+    //   const GiaTC = values.GiaTC;
 
-      await listStockMutation.mutateAsync(
-        {
-          maCP: stockToList.MaCP,
-          initialGiaTC: GiaTC,
-        },
-        {
-          onSuccess: () => {
-            const newStocks = stocks.map((stock) => {
-              if (stock.MaCP === stockToList.MaCP) {
-                return {
-                  ...stock,
-                  Status: 1,
-                  GiaTC,
-                  GiaTran: GiaTC * 1.05,
-                };
-              }
-              return stock;
-            });
+    //   await listStockMutation.mutateAsync(
+    //     {
+    //       maCP: stockToList.MaCP,
+    //       initialGiaTC: GiaTC,
+    //     },
+    //     {
+    //       onSuccess: () => {
+    //         const newStocks = stocks.map((stock) => {
+    //           if (stock.MaCP === stockToList.MaCP) {
+    //             return {
+    //               ...stock,
+    //               Status: 1,
+    //               GiaTC,
+    //               GiaTran: GiaTC * 1.05,
+    //             };
+    //           }
+    //           return stock;
+    //         });
 
-            saveToHistory(newStocks);
-            setStocks(newStocks);
+    //         saveToHistory(newStocks);
+    //         setStocks(newStocks);
 
-            toast({
-              title: "Niêm yết cổ phiếu thành công",
-              description: `Đã niêm yết cổ phiếu ${stockToList.MaCP}`,
-            });
+    //         toast({
+    //           title: "Niêm yết cổ phiếu thành công",
+    //           description: `Đã niêm yết cổ phiếu ${stockToList.MaCP}`,
+    //         });
 
-            setShowListingDialog(false);
-            setStockToList(null);
-          },
-          onError: (err) => {
-            toast({
-              title: "Lỗi",
-              description:
-                err.message || "Không thể niêm yết cổ phiếu. Vui lòng thử lại.",
-              variant: "destructive",
-            });
-          },
-        }
-      );
-    } catch (error) {
-      toast({
-        title: "Lỗi",
-        description:
-          error.message || "Không thể thực hiện thao tác. Vui lòng thử lại.",
-        variant: "destructive",
-      });
-    }
+    //         setShowListingDialog(false);
+    //         setStockToList(null);
+    //       },
+    //       onError: (err) => {
+    //         toast({
+    //           title: "Lỗi",
+    //           description:
+    //             err.message || "Không thể niêm yết cổ phiếu. Vui lòng thử lại.",
+    //           variant: "destructive",
+    //         });
+    //       },
+    //     }
+    //   );
+    // } catch (error) {
+    //   toast({
+    //     title: "Lỗi",
+    //     description:
+    //       error.message || "Không thể thực hiện thao tác. Vui lòng thử lại.",
+    //     variant: "destructive",
+    //   });
+    // }
   };
 
   const handleCanUndo = (): boolean => {
@@ -642,9 +672,23 @@ const StockManagementPage = () => {
       });
     }
   };
+
+  const handleNavigateAllocation = (value) => {
+    navigate("/stock-allocation", { state: value });
+  };
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Quản lý cổ phiếu</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Quản lý cổ phiếu</h1>
+        <Button
+          variant="secondary"
+          onClick={() => {
+            navigate("/stock-allocation");
+          }}
+        >
+          Phân bổ cổ phiếu
+        </Button>
+      </div>
 
       <div className="flex flex-wrap items-center justify-start gap-x-4 gap-y-2 p-3 md:p-4 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm bg-white dark:bg-gray-800 max-w-full w-full mx-auto transition-all duration-300">
         {/* Tiêu đề (có thể giữ hoặc bỏ nếu muốn tối giản hơn) */}
@@ -700,9 +744,10 @@ const StockManagementPage = () => {
             stocks={filteredStocks}
             onEdit={handleEditStock}
             onDelete={handleDeleteStock}
-            onList={handleListStock}
+            // onList={handleListStock}
             onHalt={handleHaltStock}
             onResume={handleResumeStock}
+            handleNavigateAllocation={handleNavigateAllocation}
           />
         </CardContent>
       </Card>
@@ -713,12 +758,12 @@ const StockManagementPage = () => {
         editingStock={editingStock}
         setEditingStock={setEditingStock}
       />
-      <ListingDialog
+      {/* <ListingDialog
         open={showListingDialog}
         onOpenChange={setShowListingDialog}
         onSubmit={onListingSubmit}
         stock={stockToList}
-      />
+      /> */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>

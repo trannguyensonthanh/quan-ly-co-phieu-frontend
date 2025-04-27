@@ -310,6 +310,72 @@ const resetUserPassword = (
   );
 };
 
+/**
+ * Gọi API để phân bổ cổ phiếu ban đầu.
+ * @param maCP Mã cổ phiếu cần phân bổ.
+ * @param distributionList Danh sách phân bổ (bao gồm mã nhà đầu tư và các thông tin khác).
+ */
+const distributeStock = (
+  maCP: string,
+  distributionList: { maNDT: string; [key: string]: any }[]
+): Promise<SimpleMessageResponse> => {
+  const token = TokenService.getLocalAccessToken();
+  console.log("Distributing stock:", maCP, "with data:", distributionList);
+  return apiHelper.post(
+    `${API_URL}/stocks/${maCP}/distribute`,
+    { distributionList },
+    token
+  );
+};
+
+/**
+ * Gọi API để cập nhật phân bổ cổ phiếu của một nhà đầu tư.
+ * @param maCP Mã cổ phiếu.
+ * @param maNDT Mã nhà đầu tư.
+ * @param newSoLuong Số lượng cổ phiếu mới cần cập nhật.
+ */
+const updateInvestorDistribution = (
+  maCP: string,
+  maNDT: string,
+  newSoLuong: number
+): Promise<SimpleMessageResponse> => {
+  const token = TokenService.getLocalAccessToken();
+  return apiHelper.put(
+    `${API_URL}/stocks/${maCP}/distribution/${maNDT}`,
+    { newSoLuong },
+    token
+  );
+};
+
+/**
+ * Gọi API để xóa phân bổ cổ phiếu của một nhà đầu tư.
+ * @param maCP Mã cổ phiếu.
+ * @param maNDT Mã nhà đầu tư.
+ */
+const revokeInvestorDistribution = (
+  maCP: string,
+  maNDT: string
+): Promise<SimpleMessageResponse> => {
+  const token = TokenService.getLocalAccessToken();
+  return apiHelper.delete(
+    `${API_URL}/stocks/${maCP}/distribution/${maNDT}`,
+    token
+  );
+};
+
+/**
+ * Gọi API để cho phép giao dịch trở lại một cổ phiếu.
+ * @param maCP Mã cổ phiếu cần cho phép giao dịch trở lại.
+ * @param giaTC Giá tham chiếu mới cho ngày giao dịch lại.
+ */
+const relistStock = (
+  maCP: string,
+  giaTC: number
+): Promise<SimpleMessageResponse> => {
+  const token = TokenService.getLocalAccessToken();
+  return apiHelper.put(`${API_URL}/stocks/${maCP}/relist`, { giaTC }, token);
+};
+
 // Export service object
 const AdminService = {
   createBackupDevice,
@@ -335,6 +401,10 @@ const AdminService = {
   getAllOrders,
   resetUserPassword,
   getBackupHistoryList,
+  distributeStock,
+  updateInvestorDistribution,
+  revokeInvestorDistribution,
+  relistStock,
 };
 
 export default AdminService;

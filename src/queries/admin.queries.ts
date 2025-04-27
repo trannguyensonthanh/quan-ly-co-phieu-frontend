@@ -422,3 +422,90 @@ export const useResetUserPasswordMutation = () => {
     },
   });
 };
+
+/**
+ * Hook để phân bổ cổ phiếu ban đầu.
+ */
+export const useDistributeStockMutation = () => {
+  return useMutation<
+    SimpleMessageResponse,
+    Error,
+    { maCP: string; distributionList: { maNDT: string; [key: string]: any }[] }
+  >({
+    mutationFn: ({ maCP, distributionList }) =>
+      AdminService.distributeStock(maCP, distributionList),
+    onSuccess: (data) => {
+      console.log("Stock distributed successfully:", data.message);
+      // Hiển thị thông báo thành công cho admin
+    },
+    onError: (error: any) => {
+      console.error("Stock distribution failed:", error);
+      // Hiển thị lỗi chi tiết cho admin
+    },
+  });
+};
+
+/**
+ * Hook để cập nhật phân bổ cổ phiếu của một nhà đầu tư.
+ */
+export const useUpdateInvestorDistributionMutation = () => {
+  return useMutation<
+    SimpleMessageResponse,
+    Error,
+    { maCP: string; maNDT: string; newSoLuong: number }
+  >({
+    mutationFn: ({ maCP, maNDT, newSoLuong }) =>
+      AdminService.updateInvestorDistribution(maCP, maNDT, newSoLuong),
+    onSuccess: (data) => {
+      console.log("Investor distribution updated successfully:", data.message);
+      // Hiển thị thông báo thành công cho admin
+    },
+    onError: (error: any) => {
+      console.error("Updating investor distribution failed:", error);
+      // Hiển thị lỗi chi tiết cho admin
+    },
+  });
+};
+
+/**
+ * Hook để xóa phân bổ cổ phiếu của một nhà đầu tư.
+ */
+export const useRevokeInvestorDistributionMutation = () => {
+  return useMutation<
+    SimpleMessageResponse,
+    Error,
+    { maCP: string; maNDT: string }
+  >({
+    mutationFn: ({ maCP, maNDT }) =>
+      AdminService.revokeInvestorDistribution(maCP, maNDT),
+    onSuccess: (data) => {
+      console.log("Investor distribution revoked successfully:", data.message);
+      // Hiển thị thông báo thành công cho admin
+    },
+    onError: (error: any) => {
+      console.error("Revoking investor distribution failed:", error);
+      // Hiển thị lỗi chi tiết cho admin
+    },
+  });
+};
+
+/**
+ * Hook để cho phép giao dịch trở lại một cổ phiếu.
+ */
+export const useRelistStockMutation = () => {
+  return useMutation<
+    SimpleMessageResponse,
+    Error,
+    { maCP: string; giaTC: number }
+  >({
+    mutationFn: ({ maCP, giaTC }) => AdminService.relistStock(maCP, giaTC),
+    onSuccess: (data) => {
+      console.log("Stock relisted successfully:", data.message);
+      // Hiển thị thông báo thành công cho admin
+    },
+    onError: (error: any) => {
+      console.error("Relisting stock failed:", error);
+      // Hiển thị lỗi chi tiết cho admin
+    },
+  });
+};

@@ -10,6 +10,7 @@ import type {
   CreateCoPhieuPayload,
   UpdateCoPhieuPayload,
   StockOrderStatementResponse,
+  ShareholdersResponse,
 } from "../services/stock.service";
 import type { MarketBoardResponse } from "../services/market.service";
 import type { SimpleMessageResponse } from "../services/admin.service"; // Dùng lại kiểu message chung
@@ -25,6 +26,8 @@ const stockKeys = {
     [...stockKeys.all, "orders", maCP] as const, // Key cho sao kê lệnh của CP
   history: (maCP: string | undefined) =>
     [...stockKeys.all, "history", maCP] as const,
+  shareholders: (maCP: string | undefined) =>
+    [...stockKeys.detail(maCP), "shareholders"] as const,
 };
 
 export const marketKeys = {
@@ -65,7 +68,7 @@ export const useGetStockByIdQuery = (maCP: string | undefined) => {
 };
 
 /**
- * Hook để lấy sao kê lệnh của một mã cổ phiếu (dùng cho Admin).
+ * Hook để lấy sao kê lệnh đặt của một mã cổ phiếu dựa trên mã cổ phiếu (dùng cho Admin).
  * @param maCP Mã cổ phiếu.
  * @param tuNgay Ngày bắt đầu.
  * @param denNgay Ngày kết thúc.
@@ -257,6 +260,51 @@ export const useListStockMutation = () => {
     },
   });
 };
+
+// /**
+//  * Hook để mở giao dịch một cổ phiếu (Admin).
+//  */
+// export const useOpenStockMutation = () => {
+//   const queryClient = useQueryClient();
+
+//   return useMutation<CoPhieu, Error, { maCP: string }>({
+//     mutationFn: ({ maCP }) => StockService.openStock(maCP),
+//     onSuccess: (openedStock, variables) => {
+//       console.log("Stock opened for trading:", openedStock);
+//       // Vô hiệu hóa cả danh sách và chi tiết để đảm bảo dữ liệu mới nhất
+//       queryClient.invalidateQueries({ queryKey: stockKeys.lists() });
+//       queryClient.invalidateQueries({
+//         queryKey: stockKeys.detail(variables.maCP),
+//       });
+//       // Hoặc cập nhật cache trực tiếp nếu cần
+//       queryClient.setQueryData(stockKeys.detail(variables.maCP), openedStock);
+//       queryClient.invalidateQueries({ queryKey: ["admin", "undo-logs"] });
+//     },
+//     onError: (error: any) => {
+//       console.error("Open stock failed:", error);
+//       // Hiển thị lỗi
+//     },
+//   });
+// };
+
+/**
+ * Hook để lấy danh sách cổ phiếu dựa vào trạng thái.
+ * @param status Trạng thái của cổ phiếu (0: Chưa niêm yết, 1: Đang giao dịch, 2: Ngừng giao dịch).
+ */
+export const useGetStocksByStatusQuery = (status: number | undefined) => {
+  return useQuery<CoPhieu[], Error>({
+    queryKey: ["stocks", "status", status],
+    queryFn: () => {
+      if (status == null) {
+        return Promise.reject(new Error("Trạng thái là bắt buộc"));
+      }
+      return StockService.getStocksByStatus(status);
+    },
+    enabled: status != null, // Chỉ chạy query khi status có giá trị
+    staleTime: 1000 * 60 * 5, // Dữ liệu ít thay đổi (5 phút)
+  });
+};
+
 /**
  * Hook để hoàn tác hành động cuối cùng trên một cổ phiếu (Admin).
  */
@@ -364,5 +412,37 @@ export const useGetStockMarketDataQuery = (maCP: string | undefined) => {
     staleTime: 1000 * 10, // Dữ liệu thay đổi thường xuyên hơn chi tiết tĩnh (10 giây)
     refetchInterval: 1000 * 30, // Có thể fetch lại định kỳ (30 giây) nếu đang xem chi tiết
     // refetchOnWindowFocus: true, // Bật lại nếu muốn cập nhật khi focus
+  });
+};
+
+/**
+ * Hook để lấy tổng số lượng đã phân bổ của một mã cổ phiếu.
+ * @param maCP Mã cổ phiếu.
+ */
+export const useGetTotalDistributedQuantityQuery = (
+  maCP: string | undefined
+) => {
+  return useQuery<{ totalDistributed: number }, APIError>({
+    queryKey: ["stocks", "distributed-quantity", maCP],
+    queryFn: () => {
+      if (!maCP) return Promise.reject(new APIError("Mã CP là bắt buộc", 400));
+      return StockService.getTotalDistributedQuantity(maCP);
+    },
+    enabled: !!maCP, // Chỉ chạy query khi maCP có giá trị
+    staleTime: 1000 * 60 * 5, // Dữ liệu ít thay đổi (5 phút)
+  });
+};
+
+// --- THÊM QUERY HOOK MỚI ---
+/** Hook để lấy danh sách cổ đông của một mã cổ phiếu */
+export const useGetShareholdersQuery = (maCP: string | undefined) => {
+  return useQuery<ShareholdersResponse, APIError>({
+    queryKey: stockKeys.shareholders(maCP), // <<< Dùng key mới
+    queryFn: () => {
+      if (!maCP) return Promise.reject(new APIError("Mã CP là bắt buộc", 400));
+      return StockService.getShareholders(maCP); // <<< Gọi service mới
+    },
+    enabled: !!maCP, // Chỉ chạy khi có maCP
+    staleTime: 1000 * 60 * 5, // Dữ liệu cổ đông thay đổi khi có khớp lệnh (5 phút)
   });
 };
