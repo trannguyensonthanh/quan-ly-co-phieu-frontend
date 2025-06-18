@@ -1,19 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { mockStocks } from "@/utils/mock-data";
+} from '@/components/ui/card';
+import { mockStocks } from '@/utils/mock-data';
 import {
   formatCurrency,
   formatNumber,
   getPriceChangeClass,
-} from "@/utils/format";
-import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
-import { useMarketBoardQuery } from "@/queries/stock.queries";
+} from '@/utils/format';
+import { ArrowDownIcon, ArrowUpIcon } from 'lucide-react';
+import { useMarketBoardQuery } from '@/queries/stock.queries';
 
 const MarketSummary = () => {
   const [marketStats, setMarketStats] = useState({
@@ -30,11 +30,9 @@ const MarketSummary = () => {
 
   useEffect(() => {
     if (marketBoardData) {
+      console.log('Market Board Data:', marketBoardData);
       const stats = marketBoardData.reduce(
         (acc, stock) => {
-          const volume = stock.KLKhopCuoi;
-          const value = stock.KLKhopCuoi * stock.GiaKhopCuoi;
-
           if (stock.GiaKhopCuoi > stock.GiaTC) {
             acc.increasingStocks += 1;
           } else if (stock.GiaKhopCuoi < stock.GiaTC) {
@@ -42,9 +40,8 @@ const MarketSummary = () => {
           } else {
             acc.unchangedStocks += 1;
           }
-
-          acc.totalVolume += volume;
-          acc.totalValue += value;
+          acc.totalVolume += stock.TongKLKhop;
+          acc.totalValue += stock.TongGTGD;
 
           return acc;
         },

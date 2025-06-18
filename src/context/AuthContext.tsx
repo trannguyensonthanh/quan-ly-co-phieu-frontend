@@ -1,9 +1,9 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { User } from "@/utils/types";
-import { authenticateUser } from "@/utils/mock-data";
-import { useNavigate } from "react-router-dom";
-import { useToast } from "@/components/ui/use-toast";
-import { SignInData } from "@/services/auth.service";
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { User } from '@/utils/types';
+import { authenticateUser } from '@/utils/mock-data';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/components/ui/use-toast';
+import { SignInData } from '@/services/auth.service';
 
 interface AuthContextType {
   user: SignInData | null;
@@ -23,7 +23,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const storedUser = localStorage.getItem("user");
+  const storedUser = localStorage.getItem('user');
   // Check for existing session on mount
   useEffect(() => {
     if (storedUser) {
@@ -44,11 +44,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       return true;
     } catch (error) {
-      console.error("Login error:", error);
+      console.error('Login error:', error);
       toast({
-        title: "Lỗi đăng nhập",
-        description: "Đã xảy ra lỗi trong quá trình đăng nhập",
-        variant: "destructive",
+        title: 'Lỗi đăng nhập',
+        description: 'Đã xảy ra lỗi trong quá trình đăng nhập',
+        variant: 'destructive',
       });
       return false;
     }
@@ -59,13 +59,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     setIsAuthenticated(false);
 
     toast({
-      title: "Đã đăng xuất",
-      description: "Bạn đã đăng xuất khỏi hệ thống",
+      title: 'Đã đăng xuất',
+      description: 'Bạn đã đăng xuất khỏi hệ thống',
     });
   };
 
-  const isEmployee = user?.role === "NhanVien";
-  const isInvestor = user?.role === "NhaDauTu";
+  const isEmployee = user?.role === 'NhanVien';
+  const isInvestor = user?.role === 'NhaDauTu';
 
   return (
     <AuthContext.Provider
@@ -79,7 +79,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };

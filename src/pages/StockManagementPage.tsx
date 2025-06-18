@@ -680,14 +680,14 @@ const StockManagementPage = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Quản lý cổ phiếu</h1>
-        <Button
+        {/* <Button
           variant="secondary"
           onClick={() => {
             navigate("/stock-allocation");
           }}
         >
           Phân bổ cổ phiếu
-        </Button>
+        </Button> */}
       </div>
 
       <div className="flex flex-wrap items-center justify-start gap-x-4 gap-y-2 p-3 md:p-4 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm bg-white dark:bg-gray-800 max-w-full w-full mx-auto transition-all duration-300">

@@ -1,19 +1,19 @@
-import { Link } from "react-router-dom";
-import MarketSummary from "@/components/dashboard/MarketSummary";
-import StockOverview from "@/components/dashboard/StockOverview";
+import { Link } from 'react-router-dom';
+import MarketSummary from '@/components/dashboard/MarketSummary';
+import StockOverview from '@/components/dashboard/StockOverview';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { mockOrders, mockStockOwnerships, mockStocks } from "@/utils/mock-data";
+} from '@/components/ui/card';
+import { mockOrders, mockStockOwnerships, mockStocks } from '@/utils/mock-data';
 import {
   formatCurrency,
   formatPriceChange,
   getPriceChangeClass,
-} from "@/utils/format";
+} from '@/utils/format';
 import {
   ArrowDown,
   ArrowRight,
@@ -21,9 +21,9 @@ import {
   LineChart,
   PieChart,
   ShoppingBag,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useMarketBoardQuery } from "@/queries/stock.queries";
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useMarketBoardQuery } from '@/queries/stock.queries';
 
 const Index = () => {
   // Get top gainers and losers
@@ -49,7 +49,7 @@ const Index = () => {
 
   // Get recent orders
   const recentOrders = [...mockOrders]
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .sort((a, b) => new Date(b.NgayGD).getTime() - new Date(a.NgayGD).getTime())
     .slice(0, 3);
 
   // // Get user portfolio summary

@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // src/services/market.service.ts
-import TokenService from "@/services/token.service";
-import apiHelper from "./apiHelper";
+import TokenService from '@/services/token.service';
+import apiHelper from './apiHelper';
 
-const API_URL = "/market";
+const API_URL = '/market';
 // Định nghĩa kiểu dữ liệu chi tiết thị trường của một mã cổ phiếu
 export interface StockMarketDetail {
   MaCP: string; // Mã cổ phiếu
@@ -68,6 +68,7 @@ export interface MarketBoardItem {
   KLBan2?: number;
   GiaBan3?: number;
   KLBan3?: number;
+  TongGTGD?: number;
 }
 
 export type MarketBoardResponse = MarketBoardItem[];
@@ -86,7 +87,7 @@ const getMarketBoard = (): Promise<MarketBoardResponse> => {
  * @param maCP Mã cổ phiếu.
  */
 const getStockMarketData = (maCP: string): Promise<any> => {
-  if (!maCP) return Promise.reject(new Error("Mã CP là bắt buộc"));
+  if (!maCP) return Promise.reject(new Error('Mã CP là bắt buộc'));
   const token = TokenService.getLocalAccessToken();
   return apiHelper.get(`${API_URL}/stocks/${maCP}`, token);
 };

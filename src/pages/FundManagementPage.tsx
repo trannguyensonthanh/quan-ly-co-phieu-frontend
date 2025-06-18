@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -14,15 +14,15 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+} from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   mockBankAccounts,
   mockUsers,
   mockMoneyTransactions,
-} from "@/utils/mock-data";
-import { useToast } from "@/components/ui/use-toast";
+} from '@/utils/mock-data';
+import { useToast } from '@/components/ui/use-toast';
 import {
   Dialog,
   DialogContent,
@@ -30,15 +30,15 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogFooter,
-} from "@/components/ui/dialog";
-import { format } from "date-fns";
-import { Calendar } from "@/components/ui/calendar";
+} from '@/components/ui/dialog';
+import { format } from 'date-fns';
+import { Calendar } from '@/components/ui/calendar';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import { MoneyTransaction, User, BankAccount, Bank } from "@/utils/types";
+} from '@/components/ui/popover';
+import { MoneyTransaction, User, BankAccount, Bank } from '@/utils/types';
 import {
   Plus,
   MinusCircle,
@@ -46,7 +46,7 @@ import {
   Search,
   Building,
   Trash,
-} from "lucide-react";
+} from 'lucide-react';
 import {
   Form,
   FormControl,
@@ -54,59 +54,59 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
+} from '@/components/ui/form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+} from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   useCreateBankAccountMutation,
   useDeleteBankAccountMutation,
   useGetAllBankAccountsQuery,
-} from "@/queries/adminBankAccount.queries";
+} from '@/queries/adminBankAccount.queries';
 import {
   useDepositToInvestorAccountMutation,
   useGetAllInvestorsQuery,
   useWithdrawFromInvestorAccountMutation,
-} from "@/queries/investor.queries";
-import { useGetAllBanksQuery } from "@/queries/bank.queries";
-import { cn } from "@/lib/utils";
-import { useGetAllCashTransactionsQuery } from "@/queries/admin.queries";
+} from '@/queries/investor.queries';
+import { useGetAllBanksQuery } from '@/queries/bank.queries';
+import { cn } from '@/lib/utils';
+import { useGetAllCashTransactionsQuery } from '@/queries/admin.queries';
 const bankAccountSchema = z.object({
-  username: z.string().min(1, "Vui lòng chọn nhà đầu tư"),
-  MaNH: z.string().min(1, "Vui lòng chọn ngân hàng"),
-  SoTien: z.coerce.number().min(0, "Số dư không được âm"),
+  username: z.string().min(1, 'Vui lòng chọn nhà đầu tư'),
+  MaNH: z.string().min(1, 'Vui lòng chọn ngân hàng'),
+  SoTien: z.coerce.number().min(0, 'Số dư không được âm'),
 });
 
 type BankAccountFormValues = z.infer<typeof bankAccountSchema>;
 
 const transactionSchema = z.object({
-  maTK: z.string().min(1, "Vui lòng chọn tài khoản"),
-  soTien: z.coerce.number().min(1, "Số tiền phải lớn hơn 0"),
-  type: z.enum(["deposit", "withdraw"]),
-  ghiChu: z.string().min(5, "Lý do phải có ít nhất 5 ký tự"),
+  maTK: z.string().min(1, 'Vui lòng chọn tài khoản'),
+  soTien: z.coerce.number().min(1, 'Số tiền phải lớn hơn 0'),
+  type: z.enum(['deposit', 'withdraw']),
+  ghiChu: z.string().min(5, 'Lý do phải có ít nhất 5 ký tự'),
 });
 
 type TransactionFormValues = z.infer<typeof transactionSchema>;
 
 const FundManagementPage = () => {
   const { toast } = useToast();
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showNewAccountDialog, setShowNewAccountDialog] = useState(false);
   const [bankAccounts, setBankAccounts] = useState<any>(mockBankAccounts);
-  const [activeTab, setActiveTab] = useState("accounts");
+  const [activeTab, setActiveTab] = useState('accounts');
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
-  const [transactionType, setTransactionType] = useState<string>("all");
-  const [transactionSearch, setTransactionSearch] = useState("");
+  const [transactionType, setTransactionType] = useState<string>('all');
+  const [transactionSearch, setTransactionSearch] = useState('');
 
   const { data: allBankAccounts, isLoading: isLoadingBankAccounts } =
     useGetAllBankAccountsQuery();
@@ -118,8 +118,8 @@ const FundManagementPage = () => {
 
   const { data: allCashTransactions, isLoading: isLoadingCashTransactions } =
     useGetAllCashTransactionsQuery(
-      startDate ? startDate.toISOString().split("T")[0] : "1900-01-01",
-      endDate ? endDate.toISOString().split("T")[0] : "2100-12-31"
+      startDate ? startDate.toISOString().split('T')[0] : '1900-01-01',
+      endDate ? endDate.toISOString().split('T')[0] : '2100-12-31'
     );
 
   const deleteBankAccountMutation = useDeleteBankAccountMutation();
@@ -138,18 +138,18 @@ const FundManagementPage = () => {
   const transactionForm = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionSchema),
     defaultValues: {
-      maTK: "",
+      maTK: '',
       soTien: 0,
-      type: "deposit",
-      ghiChu: "",
+      type: 'deposit',
+      ghiChu: '',
     },
   });
 
   const accountForm = useForm<BankAccountFormValues>({
     resolver: zodResolver(bankAccountSchema),
     defaultValues: {
-      username: "",
-      MaNH: "",
+      username: '',
+      MaNH: '',
       SoTien: 0,
     },
   });
@@ -157,7 +157,7 @@ const FundManagementPage = () => {
   const handleCreateAccount = async (values: BankAccountFormValues) => {
     try {
       const newAccount = {
-        MaTK: `TK${String(bankAccounts.length + 1).padStart(3, "0")}`,
+        MaTK: `TK${String(bankAccounts.length + 1).padStart(3, '0')}`,
         MaNDT: values.username, // Ensure MaNDT is included
         MaNH: values.MaNH,
         SoTien: values.SoTien,
@@ -171,10 +171,10 @@ const FundManagementPage = () => {
             const newTransaction: MoneyTransaction = {
               id: mockMoneyTransactions.length + 1,
               userId: values.username,
-              date: new Date().toISOString().split("T")[0],
+              date: new Date().toISOString().split('T')[0],
               openingBalance: 0,
               amount: values.SoTien,
-              reason: "Số dư ban đầu khi tạo tài khoản",
+              reason: 'Số dư ban đầu khi tạo tài khoản',
               closingBalance: values.SoTien,
             };
 
@@ -185,23 +185,23 @@ const FundManagementPage = () => {
           accountForm.reset();
 
           toast({
-            title: "Tạo tài khoản thành công",
+            title: 'Tạo tài khoản thành công',
             description: `Đã tạo tài khoản ngân hàng mới với số dư ${values?.SoTien?.toLocaleString()} VNĐ`,
           });
         },
         onError: () => {
           toast({
-            title: "Lỗi",
-            description: "Không thể tạo tài khoản. Vui lòng thử lại.",
-            variant: "destructive",
+            title: 'Lỗi',
+            description: 'Không thể tạo tài khoản. Vui lòng thử lại.',
+            variant: 'destructive',
           });
         },
       });
     } catch (error) {
       toast({
-        title: "Lỗi",
-        description: "Không thể tạo tài khoản. Vui lòng thử lại.",
-        variant: "destructive",
+        title: 'Lỗi',
+        description: 'Không thể tạo tài khoản. Vui lòng thử lại.',
+        variant: 'destructive',
       });
     }
   };
@@ -211,29 +211,29 @@ const FundManagementPage = () => {
       const account = bankAccounts.find((acc) => acc.MaTK === values.maTK);
       if (!account) {
         toast({
-          title: "Lỗi",
-          description: "Không tìm thấy tài khoản. Vui lòng thử lại.",
-          variant: "destructive",
+          title: 'Lỗi',
+          description: 'Không tìm thấy tài khoản. Vui lòng thử lại.',
+          variant: 'destructive',
         });
         return;
       }
 
       const transactionAmount =
-        values.type === "deposit" ? values.soTien : -values.soTien;
+        values.type === 'deposit' ? values.soTien : -values.soTien;
 
       const closingBalance = account.SoTien + transactionAmount;
 
       if (closingBalance < 0) {
         toast({
-          title: "Lỗi",
-          description: "Số dư không đủ để thực hiện giao dịch.",
-          variant: "destructive",
+          title: 'Lỗi',
+          description: 'Số dư không đủ để thực hiện giao dịch.',
+          variant: 'destructive',
         });
         return;
       }
 
       const mutation =
-        values.type === "deposit"
+        values.type === 'deposit'
           ? depositToInvestorAccountMutation
           : withdrawFromInvestorAccountMutation;
       await mutation.mutateAsync(
@@ -256,7 +256,7 @@ const FundManagementPage = () => {
             const newTransaction: MoneyTransaction = {
               id: mockMoneyTransactions.length + 1,
               userId: account.MaNDT,
-              date: new Date().toISOString().split("T")[0],
+              date: new Date().toISOString().split('T')[0],
               openingBalance: account.SoTien,
               amount: transactionAmount,
               reason: values.ghiChu,
@@ -269,28 +269,28 @@ const FundManagementPage = () => {
             transactionForm.reset();
 
             toast({
-              title: "Giao dịch thành công",
+              title: 'Giao dịch thành công',
               description: `Đã ${
-                values.type === "deposit" ? "nạp" : "rút"
+                values.type === 'deposit' ? 'nạp' : 'rút'
               } ${values.soTien.toLocaleString()} VNĐ ${
-                values.type === "deposit" ? "vào" : "từ"
+                values.type === 'deposit' ? 'vào' : 'từ'
               } tài khoản`,
             });
           },
           onError: () => {
             toast({
-              title: "Lỗi",
-              description: "Không thể thực hiện giao dịch. Vui lòng thử lại.",
-              variant: "destructive",
+              title: 'Lỗi',
+              description: 'Không thể thực hiện giao dịch. Vui lòng thử lại.',
+              variant: 'destructive',
             });
           },
         }
       );
     } catch (error) {
       toast({
-        title: "Lỗi",
-        description: "Không thể thực hiện giao dịch. Vui lòng thử lại.",
-        variant: "destructive",
+        title: 'Lỗi',
+        description: 'Không thể thực hiện giao dịch. Vui lòng thử lại.',
+        variant: 'destructive',
       });
     }
   };
@@ -307,24 +307,24 @@ const FundManagementPage = () => {
             setBankAccounts(updatedAccounts);
 
             toast({
-              title: "Xóa tài khoản thành công",
-              description: "Tài khoản đã được xóa khỏi hệ thống",
+              title: 'Xóa tài khoản thành công',
+              description: 'Tài khoản đã được xóa khỏi hệ thống',
             });
           },
           onError: () => {
             toast({
-              title: "Lỗi",
-              description: "Không thể xóa tài khoản. Vui lòng thử lại.",
-              variant: "destructive",
+              title: 'Lỗi',
+              description: 'Không thể xóa tài khoản. Vui lòng thử lại.',
+              variant: 'destructive',
             });
           },
         }
       );
     } catch (error) {
       toast({
-        title: "Lỗi",
-        description: "Không thể xóa tài khoản. Vui lòng thử lại.",
-        variant: "destructive",
+        title: 'Lỗi',
+        description: 'Không thể xóa tài khoản. Vui lòng thử lại.',
+        variant: 'destructive',
       });
     }
   };
@@ -332,12 +332,13 @@ const FundManagementPage = () => {
   const filteredTransactions =
     allCashTransactions
       ?.filter((transaction) => {
+        console.log('transaction', transaction);
         // Filter by transaction type
-        if (transactionType !== "all") {
-          const isDeposit = transaction.SoTien > 0;
+        if (transactionType !== 'all') {
+          const isDeposit = transaction.LoaiGDTien === 'Nạp tiền';
           if (
-            (transactionType === "deposit" && !isDeposit) ||
-            (transactionType === "withdraw" && isDeposit)
+            (transactionType === 'deposit' && !isDeposit) ||
+            (transactionType === 'withdraw' && isDeposit)
           ) {
             return false;
           }
@@ -345,8 +346,8 @@ const FundManagementPage = () => {
 
         // Filter by search term
         const user = allInvestors?.find((u) => u.MaNDT === transaction.MaNDT);
-        const searchString = `${user?.HoTen || ""} ${
-          transaction.GhiChu || ""
+        const searchString = `${user?.HoTen || ''} ${
+          transaction.GhiChu || ''
         }`.toLowerCase();
         if (
           transactionSearch &&
@@ -666,8 +667,8 @@ const FundManagementPage = () => {
                                   transactionForm.reset({
                                     maTK: account.MaTK,
                                     soTien: 0,
-                                    type: "deposit",
-                                    ghiChu: "Nạp tiền vào tài khoản",
+                                    type: 'deposit',
+                                    ghiChu: 'Nạp tiền vào tài khoản',
                                   });
                                   setShowAddDialog(true);
                                 }}
@@ -682,8 +683,8 @@ const FundManagementPage = () => {
                                   transactionForm.reset({
                                     maTK: account.MaTK,
                                     soTien: 0,
-                                    type: "withdraw",
-                                    ghiChu: "Rút tiền từ tài khoản",
+                                    type: 'withdraw',
+                                    ghiChu: 'Rút tiền từ tài khoản',
                                   });
                                   setShowAddDialog(true);
                                 }}
@@ -718,7 +719,7 @@ const FundManagementPage = () => {
                                     </DialogTitle>
                                   </DialogHeader>
                                   <p>
-                                    Bạn có chắc chắn muốn xóa tài khoản{" "}
+                                    Bạn có chắc chắn muốn xóa tài khoản{' '}
                                     {account.MaTK} của {account.MaNDT}?
                                   </p>
                                   <DialogFooter className="mt-4">
@@ -771,8 +772,8 @@ const FundManagementPage = () => {
                           className="text-center py-6 text-muted-foreground"
                         >
                           {searchTerm
-                            ? "Không tìm thấy tài khoản phù hợp"
-                            : "Chưa có tài khoản ngân hàng nào trong hệ thống"}
+                            ? 'Không tìm thấy tài khoản phù hợp'
+                            : 'Chưa có tài khoản ngân hàng nào trong hệ thống'}
                         </TableCell>
                       </TableRow>
                     )}
@@ -800,14 +801,14 @@ const FundManagementPage = () => {
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
-                            variant={"outline"}
+                            variant={'outline'}
                             className={cn(
-                              "w-full justify-start text-left font-normal",
-                              !startDate && "text-muted-foreground"
+                              'w-full justify-start text-left font-normal',
+                              !startDate && 'text-muted-foreground'
                             )}
                           >
                             {startDate ? (
-                              format(startDate, "dd/MM/yyyy")
+                              format(startDate, 'dd/MM/yyyy')
                             ) : (
                               <span>Chọn ngày</span>
                             )}
@@ -830,14 +831,14 @@ const FundManagementPage = () => {
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button
-                          variant={"outline"}
+                          variant={'outline'}
                           className={cn(
-                            "w-full justify-start text-left font-normal",
-                            !endDate && "text-muted-foreground"
+                            'w-full justify-start text-left font-normal',
+                            !endDate && 'text-muted-foreground'
                           )}
                         >
                           {endDate ? (
-                            format(endDate, "dd/MM/yyyy")
+                            format(endDate, 'dd/MM/yyyy')
                           ) : (
                             <span>Chọn ngày</span>
                           )}
@@ -908,33 +909,33 @@ const FundManagementPage = () => {
                           <TableCell>{transaction.NgayGD}</TableCell>
                           <TableCell>{transaction.MaNDT}</TableCell>
                           <TableCell>
-                            {transaction.LoaiGDTien === "Nạp tiền"
+                            {transaction.LoaiGDTien === 'Nạp tiền'
                               ? (
                                   transaction.SoDu - transaction.SoTien
                                 ).toLocaleString()
                               : (
                                   transaction.SoDu + transaction.SoTien
-                                ).toLocaleString()}{" "}
+                                ).toLocaleString()}{' '}
                             VNĐ
                           </TableCell>
                           <TableCell>
                             <span
                               className={
-                                transaction.LoaiGDTien === "Nạp tiền"
-                                  ? "text-green-600"
-                                  : "text-red-600"
+                                transaction.LoaiGDTien === 'Nạp tiền'
+                                  ? 'text-green-600'
+                                  : 'text-red-600'
                               }
                             >
-                              {transaction.LoaiGDTien === "Nạp tiền"
-                                ? "+"
-                                : "-"}
+                              {transaction.LoaiGDTien === 'Nạp tiền'
+                                ? '+'
+                                : '-'}
                               {transaction.SoTien.toLocaleString()} VNĐ
                             </span>
                           </TableCell>
                           <TableCell>
-                            {transaction.LoaiGDTien === "Nạp tiền"
+                            {transaction.LoaiGDTien === 'Nạp tiền'
                               ? transaction.SoDu.toLocaleString()
-                              : transaction.SoDu.toLocaleString()}{" "}
+                              : transaction.SoDu.toLocaleString()}{' '}
                             VNĐ
                           </TableCell>
                           <TableCell>{transaction.GhiChu}</TableCell>

@@ -164,10 +164,10 @@ const BankManagementPage = () => {
           setOpenDialog(false);
           form.reset();
         },
-        onError: () => {
+        onError: (err) => {
           toast({
             title: "Lỗi thêm ngân hàng",
-            description: "Đã xảy ra lỗi khi thêm ngân hàng mới",
+            description: err?.message || "Đã xảy ra lỗi khi thêm ngân hàng mới",
             variant: "destructive",
           });
         },
@@ -175,7 +175,7 @@ const BankManagementPage = () => {
     } catch (error) {
       toast({
         title: "Lỗi",
-        description: error.message || "Đã xảy ra lỗi không xác định",
+        description: error?.message || "Đã xảy ra lỗi không xác định",
         variant: "destructive",
       });
     }
@@ -244,10 +244,12 @@ const BankManagementPage = () => {
 
             setEditDialogOpen(false);
           },
-          onError: () => {
+          onError: (err) => {
             toast({
               title: "Lỗi cập nhật",
-              description: "Đã xảy ra lỗi khi cập nhật thông tin ngân hàng",
+              description:
+                err?.message ||
+                "Đã xảy ra lỗi khi cập nhật thông tin ngân hàng",
               variant: "destructive",
             });
           },
@@ -256,7 +258,7 @@ const BankManagementPage = () => {
     } catch (error) {
       toast({
         title: "Lỗi không xác định",
-        description: "Đã xảy ra lỗi không xác định",
+        description: error?.message || "Đã xảy ra lỗi không xác định",
         variant: "destructive",
       });
     }
