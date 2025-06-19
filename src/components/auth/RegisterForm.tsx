@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import {
   Form,
   FormField,
@@ -13,7 +13,7 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
-} from "@/components/ui/form";
+} from '@/components/ui/form';
 import {
   Card,
   CardContent,
@@ -21,51 +21,52 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { toast } from "sonner";
-import { useSignupMutation } from "@/queries/auth.queries";
-import { SignUpPayload } from "@/services/auth.service";
-import { Eye, EyeOff } from "lucide-react";
+} from '@/components/ui/card';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { toast } from 'sonner';
+import { useSignupMutation } from '@/queries/auth.queries';
+import { SignUpPayload } from '@/services/auth.service';
+import { Eye, EyeOff } from 'lucide-react';
+import { useGoongAddressAutocomplete } from '@/hooks/useGoongAddressAutocomplete';
 
 const formSchema = z
   .object({
     MaNDT: z
       .string()
-      .min(1, "Vui lòng nhập tên đăng nhập")
+      .min(1, 'Vui lòng nhập tên đăng nhập')
       .regex(
         /^[a-zA-Z0-9_]+$/,
-        "Tên đăng nhập chỉ được chứa chữ cái, số và dấu gạch dưới"
+        'Tên đăng nhập chỉ được chứa chữ cái, số và dấu gạch dưới'
       ),
     HoTen: z
       .string()
-      .min(1, "Họ và tên là bắt buộc")
+      .min(1, 'Họ và tên là bắt buộc')
       .regex(
         /^[a-zA-ZÀ-Ỵà-ỵĂăÂâĐđÊêÔôƠơƯư\s]+$/,
-        "Họ và tên phải là tiếng Việt và chỉ chứa chữ cái cùng khoảng trắng"
+        'Họ và tên phải là tiếng Việt và chỉ chứa chữ cái cùng khoảng trắng'
       ),
-    Email: z.string().email("Email không hợp lệ"),
-    Phone: z.string().min(1, "Số điện thoại là bắt buộc"),
+    Email: z.string().email('Email không hợp lệ'),
+    Phone: z.string().min(1, 'Số điện thoại là bắt buộc'),
     password: z
       .string()
-      .min(1, "Vui lòng nhập mật khẩu")
-      .min(6, "Mật khẩu phải có ít nhất 6 ký tự")
-      .max(20, "Mật khẩu không được vượt quá 20 ký tự"),
+      .min(1, 'Vui lòng nhập mật khẩu')
+      .min(6, 'Mật khẩu phải có ít nhất 6 ký tự')
+      .max(20, 'Mật khẩu không được vượt quá 20 ký tự'),
     confirmPassword: z.string(),
     CMND: z
       .string()
-      .min(9, "Số CMND phải có ít nhất 9 ký tự")
-      .max(10, "Số CMND không được vượt quá 10 ký tự")
-      .regex(/^\d+$/, "Số CMND chỉ được chứa các chữ số"),
-    NgaySinh: z.string().min(1, "Ngày sinh là bắt buộc"),
-    GioiTinh: z.enum(["Nam", "Nữ"], {
-      errorMap: () => ({ message: "Chọn giới tính" }),
-    }) as z.ZodEnum<["Nam", "Nữ"]>,
-    DiaChi: z.string().min(1, "Địa chỉ là bắt buộc"),
+      .min(9, 'Số CMND phải có ít nhất 9 ký tự')
+      .max(10, 'Số CMND không được vượt quá 10 ký tự')
+      .regex(/^\d+$/, 'Số CMND chỉ được chứa các chữ số'),
+    NgaySinh: z.string().min(1, 'Ngày sinh là bắt buộc'),
+    GioiTinh: z.enum(['Nam', 'Nữ'], {
+      errorMap: () => ({ message: 'Chọn giới tính' }),
+    }) as z.ZodEnum<['Nam', 'Nữ']>,
+    DiaChi: z.string().min(1, 'Địa chỉ là bắt buộc'),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Mật khẩu xác nhận không khớp",
-    path: ["confirmPassword"],
+    message: 'Mật khẩu xác nhận không khớp',
+    path: ['confirmPassword'],
   });
 
 const RegisterForm = () => {
@@ -74,15 +75,15 @@ const RegisterForm = () => {
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      MaNDT: "",
-      HoTen: "",
-      Email: "",
-      Phone: "",
-      password: "",
-      confirmPassword: "",
-      CMND: "",
-      GioiTinh: "Nam" as "Nam" | "Nữ",
-      DiaChi: "",
+      MaNDT: '',
+      HoTen: '',
+      Email: '',
+      Phone: '',
+      password: '',
+      confirmPassword: '',
+      CMND: '',
+      GioiTinh: 'Nam' as 'Nam' | 'Nữ',
+      DiaChi: '',
     },
   });
 
@@ -95,19 +96,26 @@ const RegisterForm = () => {
     data: signupData,
   } = useSignupMutation();
 
+  const {
+    addresses,
+    loading: addressLoading,
+    error: addressError,
+    searchAddress,
+  } = useGoongAddressAutocomplete();
+
   useEffect(() => {
     if (isSignupSuccess) {
-      toast.success("Đăng ký thành công! Vui lòng đăng nhập.");
-      navigate("/login");
+      toast.success('Đăng ký thành công! Vui lòng đăng nhập.');
+      navigate('/login');
     }
 
     if (isSignupError && signupErrorResponse) {
-      toast.error(signupErrorResponse.message || "Có lỗi xảy ra khi đăng ký");
+      toast.error(signupErrorResponse.message || 'Có lỗi xảy ra khi đăng ký');
     }
   }, [isSignupSuccess, isSignupError, signupErrorResponse, navigate]);
 
   const onSubmit = (data: SignUpPayload) => {
-    console.log("Dữ liệu đăng ký:", data);
+    console.log('Dữ liệu đăng ký:', data);
     signupMutation(data);
   };
 
@@ -226,7 +234,7 @@ const RegisterForm = () => {
                       <div className="relative">
                         <Input
                           id="password"
-                          type={isHiddenPassword ? "password" : "text"}
+                          type={isHiddenPassword ? 'password' : 'text'}
                           autoComplete="new-password"
                           placeholder="Nhập mật khẩu"
                           className="bg-gray-700 text-white placeholder-gray-400"
@@ -265,7 +273,7 @@ const RegisterForm = () => {
                       <div className="relative">
                         <Input
                           id="confirmPassword"
-                          type={isHiddenPassword ? "password" : "text"}
+                          type={isHiddenPassword ? 'password' : 'text'}
                           autoComplete="new-password"
                           placeholder="Nhập lại mật khẩu"
                           className="bg-gray-700 text-white placeholder-gray-400"
@@ -376,14 +384,47 @@ const RegisterForm = () => {
                     Địa chỉ
                   </FormLabel>
                   <FormControl>
-                    <Input
-                      id="DiaChi"
-                      autoComplete="street-address"
-                      placeholder="Nhập địa chỉ đầy đủ"
-                      className="bg-gray-700 text-white placeholder-gray-400"
-                      {...field}
-                    />
+                    <div className="relative">
+                      <Input
+                        id="DiaChi"
+                        autoComplete="street-address"
+                        placeholder="Nhập địa chỉ đầy đủ"
+                        className="bg-gray-700 text-white placeholder-gray-400"
+                        {...field}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          searchAddress(e.target.value);
+                        }}
+                      />
+                      {addressLoading && (
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
+                          Đang tìm...
+                        </span>
+                      )}
+                    </div>
                   </FormControl>
+                  {/* Gợi ý địa chỉ */}
+                  {addresses.length > 0 && (
+                    <div className="absolute z-10 mt-1 w-2/5 rounded shadow-lg border max-h-48 overflow-auto bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                      {addresses.map((addr, idx) => (
+                        <div
+                          key={addr + idx}
+                          className="px-3 py-2 cursor-pointer hover:bg-blue-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-100 text-sm"
+                          onClick={() => {
+                            form.setValue('DiaChi', addr);
+                            searchAddress('');
+                          }}
+                        >
+                          {addr}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {addressError && (
+                    <div className="text-xs text-red-400 mt-1">
+                      {addressError}
+                    </div>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
@@ -394,20 +435,20 @@ const RegisterForm = () => {
               className="w-full bg-blue-600 hover:bg-blue-700 text-white"
               disabled={form.formState.isSubmitting}
             >
-              {form.formState.isSubmitting ? "Đang xử lý..." : "Đăng ký"}
+              {form.formState.isSubmitting ? 'Đang xử lý...' : 'Đăng ký'}
             </Button>
           </form>
         </Form>
       </CardContent>
       <CardFooter className="flex justify-center border-t pt-6 border-gray-700">
         <p className="text-sm text-gray-400">
-          Đã có tài khoản?{" "}
+          Đã có tài khoản?{' '}
           <a
             href="/login"
             className="text-blue-400 hover:underline"
             onClick={(e) => {
               e.preventDefault();
-              navigate("/login");
+              navigate('/login');
             }}
           >
             Đăng nhập

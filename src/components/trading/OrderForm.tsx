@@ -1,17 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useEffect, useRef } from "react";
-import { useLocation } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 import {
   Card,
   CardContent,
@@ -19,28 +19,28 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { mockBankAccounts, mockStocks } from "@/utils/mock-data";
-import { formatCurrency } from "@/utils/format";
-import { Order, OrderMethod, OrderType } from "@/utils/types";
-import { toast } from "sonner";
-import { Separator } from "@/components/ui/separator";
+} from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { mockBankAccounts, mockStocks } from '@/utils/mock-data';
+import { formatCurrency } from '@/utils/format';
+import { Order, OrderMethod, OrderType } from '@/utils/types';
+import { toast } from 'sonner';
+import { Separator } from '@/components/ui/separator';
 import {
   useGetAllStocksQuery,
   useGetStockMarketDataQuery,
-} from "@/queries/stock.queries";
-import { Form, FormField, FormItem, FormLabel } from "@/components/ui/form";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { useGetInvestorBankAccountsQuery } from "@/queries/investor.queries";
+} from '@/queries/stock.queries';
+import { Form, FormField, FormItem, FormLabel } from '@/components/ui/form';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { useGetInvestorBankAccountsQuery } from '@/queries/investor.queries';
 import {
   useModifyOrderMutation,
   usePlaceOrderMutation,
-} from "@/queries/trading.queries";
-import { useGetMyStockQuantityQuery } from "@/queries/portfolio.queries";
-import { useGetMyOrdersTodayQuery } from "@/queries/statement.queries";
+} from '@/queries/trading.queries';
+import { useGetMyStockQuantityQuery } from '@/queries/portfolio.queries';
+import { useGetMyOrdersTodayQuery } from '@/queries/statement.queries';
 
 interface OrderFormProps {
   initialOrderType?: OrderType;
@@ -50,24 +50,24 @@ interface OrderFormProps {
 }
 
 const OrderForm = ({
-  initialOrderType = "M",
+  initialOrderType = 'M',
   orderToModify = null,
   onModifyComplete,
   setOrderToModify,
 }: OrderFormProps) => {
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
   const location = useLocation();
   const preselectedStockCode = location.state?.stockCode;
-  console.log("Preselected stock code:", preselectedStockCode);
+  console.log('Preselected stock code:', preselectedStockCode);
   const [orderType, setOrderType] = useState<OrderType>(initialOrderType);
   const [stockCode, setStockCode] = useState<string>(
-    preselectedStockCode || ""
+    preselectedStockCode || ''
   );
-  const [orderMethod, setOrderMethod] = useState<OrderMethod>("LO");
+  const [orderMethod, setOrderMethod] = useState<OrderMethod>('LO');
   const [quantity, setQuantity] = useState<number>(0);
   const [price, setPrice] = useState<number>(0);
-  const [password, setPassword] = useState<string>("");
-  const [account, setAccount] = useState<string>("");
+  const [password, setPassword] = useState<string>('');
+  const [account, setAccount] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
@@ -81,67 +81,67 @@ const OrderForm = ({
     if (stockCode) {
       refetchMarketData();
     }
-    console.log("Selected stock data:", selectedStock);
+    console.log('Selected stock data:', selectedStock);
   }, [stockCode]);
 
   const formSchema = z.object({
-    orderType: z.enum(["M", "B"], { required_error: "Loại lệnh là bắt buộc" }),
-    MaCP: z.string().min(1, "Mã cổ phiếu là bắt buộc"),
-    LoaiLenh: z.enum(["LO", "ATO", "ATC"], {
-      required_error: "Phương thức là bắt buộc",
+    orderType: z.enum(['M', 'B'], { required_error: 'Loại lệnh là bắt buộc' }),
+    MaCP: z.string().min(1, 'Mã cổ phiếu là bắt buộc'),
+    LoaiLenh: z.enum(['LO', 'ATO', 'ATC'], {
+      required_error: 'Phương thức là bắt buộc',
     }),
     SoLuong: z
       .number()
-      .min(100, "Khối lượng phải lớn hơn hoặc bằng 100")
-      .multipleOf(100, "Khối lượng phải là bội số của 100"),
+      .min(100, 'Khối lượng phải lớn hơn hoặc bằng 100')
+      .multipleOf(100, 'Khối lượng phải là bội số của 100'),
     Gia: z
       .number()
       .optional()
       .refine((val) => val === undefined || val % 100 === 0, {
-        message: "Giá phải là bội số của 100",
+        message: 'Giá phải là bội số của 100',
       }),
-    MaTK: z.string().min(1, "Tài khoản là bắt buộc"),
-    transactionPassword: z.string().min(1, "Mật khẩu giao dịch là bắt buộc"),
+    MaTK: z.string().min(1, 'Tài khoản là bắt buộc'),
+    transactionPassword: z.string().min(1, 'Mật khẩu giao dịch là bắt buộc'),
   });
 
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       orderType: initialOrderType,
-      MaCP: "",
-      LoaiLenh: "LO",
+      MaCP: '',
+      LoaiLenh: 'LO',
       SoLuong: 100,
       Gia: selectedStock?.GiaDat || 0,
-      MaTK: "",
-      transactionPassword: "",
+      MaTK: '',
+      transactionPassword: '',
     },
   });
 
   useEffect(() => {
     if (selectedStock) {
-      form.setValue("Gia", selectedStock.GiaKhopCuoi);
+      form.setValue('Gia', selectedStock.GiaKhopCuoi);
       setPrice(selectedStock.GiaKhopCuoi);
     }
   }, [selectedStock]);
   useEffect(() => {
     if (orderToModify) {
-      console.log("orderToModify:", {
-        orderType: (orderToModify.LoaiGD?.trim() as OrderType) || "M",
-        MaCP: orderToModify.MaCP?.trim() || "",
-        LoaiLenh: orderToModify.LoaiLenh?.trim() || "LO",
+      console.log('orderToModify:', {
+        orderType: (orderToModify.LoaiGD?.trim() as OrderType) || 'M',
+        MaCP: orderToModify.MaCP?.trim() || '',
+        LoaiLenh: orderToModify.LoaiLenh?.trim() || 'LO',
         SoLuong: orderToModify.SoLuongDat || 100,
         Gia: orderToModify.GiaDat || 0,
-        MaTK: orderToModify.MaTK?.trim() || "",
-        transactionPassword: "",
+        MaTK: orderToModify.MaTK?.trim() || '',
+        transactionPassword: '',
       });
       form.reset({
-        orderType: (orderToModify.LoaiGD?.trim() as OrderType) || "M",
-        MaCP: orderToModify.MaCP?.trim() || "",
-        LoaiLenh: orderToModify.LoaiLenh?.trim() || "LO",
+        orderType: (orderToModify.LoaiGD?.trim() as OrderType) || 'M',
+        MaCP: orderToModify.MaCP?.trim() || '',
+        LoaiLenh: orderToModify.LoaiLenh?.trim() || 'LO',
         SoLuong: orderToModify.SoLuongDat || 100,
         Gia: orderToModify.GiaDat || 0,
-        MaTK: orderToModify.MaTK?.trim() || "",
-        transactionPassword: "",
+        MaTK: orderToModify.MaTK?.trim() || '',
+        transactionPassword: '',
       });
       setStockCode(orderToModify.MaCP?.trim());
     }
@@ -166,7 +166,7 @@ const OrderForm = ({
 
   useEffect(() => {
     if (!isLoadingStocks && allStocks) {
-      console.log("Fetched stocks:", allStocks);
+      console.log('Fetched stocks:', allStocks);
     }
   }, [isLoadingStocks, allStocks]);
 
@@ -195,7 +195,7 @@ const OrderForm = ({
 
   const handleStockCodeChange = (value: string) => {
     setStockCode(value);
-    console.log("Selected stock code:", value);
+    console.log('Selected stock code:', value);
     const stock = allStocks?.find((stock) => stock.MaCP === value);
     if (stock) {
       setPrice((stock as any).GiaKhopCuoi || 0); // Set default price to current price
@@ -206,10 +206,10 @@ const OrderForm = ({
 
   const handleAccountChange = (value: string) => {
     setAccount(value);
-    console.log("Selected account:", value);
+    console.log('Selected account:', value);
     const selectedAccount = bankAccounts?.find((acc) => acc.MaTK === value);
     if (selectedAccount) {
-      console.log("Account details:", selectedAccount);
+      console.log('Account details:', selectedAccount);
     }
   };
 
@@ -219,7 +219,7 @@ const OrderForm = ({
 
     // Check if multiple of 100
     if (sanitizedValue % 100 !== 0 && sanitizedValue !== 0) {
-      toast.warning("Khối lượng phải là bội số của 100");
+      toast.warning('Khối lượng phải là bội số của 100');
     }
 
     setQuantity(sanitizedValue);
@@ -231,7 +231,7 @@ const OrderForm = ({
 
     // Check if multiple of 100
     if (sanitizedValue % 100 !== 0 && sanitizedValue !== 0) {
-      toast.warning("Giá phải là bội số của 100");
+      toast.warning('Giá phải là bội số của 100');
     }
 
     setPrice(sanitizedValue);
@@ -247,37 +247,37 @@ const OrderForm = ({
     transactionPassword: string;
   }) => {
     if (!data.MaCP) {
-      toast.error("Vui lòng chọn mã cổ phiếu");
+      toast.error('Vui lòng chọn mã cổ phiếu');
       return;
     }
 
     if (data.SoLuong <= 0) {
-      toast.error("Khối lượng phải lớn hơn 0");
+      toast.error('Khối lượng phải lớn hơn 0');
       return;
     }
 
     if (data.SoLuong % 100 !== 0) {
-      toast.error("Khối lượng phải là bội số của 100");
+      toast.error('Khối lượng phải là bội số của 100');
       return;
     }
 
-    if (data.LoaiLenh === "LO" && data.Gia <= 0) {
-      toast.error("Giá phải lớn hơn 0");
+    if (data.LoaiLenh === 'LO' && data.Gia <= 0) {
+      toast.error('Giá phải lớn hơn 0');
       return;
     }
 
-    if (data.LoaiLenh === "LO" && data.Gia % 100 !== 0) {
-      toast.error("Giá phải là bội số của 100");
+    if (data.LoaiLenh === 'LO' && data.Gia % 100 !== 0) {
+      toast.error('Giá phải là bội số của 100');
       return;
     }
 
     if (!data.transactionPassword) {
-      toast.error("Vui lòng nhập mật khẩu giao dịch");
+      toast.error('Vui lòng nhập mật khẩu giao dịch');
       return;
     }
 
     // Validate price against ceiling/floor if LO order
-    if (data.LoaiLenh === "LO" && selectedStock) {
+    if (data.LoaiLenh === 'LO' && selectedStock) {
       if (data.Gia > selectedStock.GiaTran) {
         toast.error(
           `Giá không được vượt quá giá trần ${formatCurrency(
@@ -298,17 +298,17 @@ const OrderForm = ({
     }
 
     // Validate account balance for buy orders
-    if (orderType === "M" && accountInfo) {
+    if (orderType === 'M' && accountInfo) {
       const orderValue = data.SoLuong * data.Gia;
       if (orderValue > accountInfo.SoTien) {
-        toast.error("Số dư tài khoản không đủ để thực hiện giao dịch này");
+        toast.error('Số dư tài khoản không đủ để thực hiện giao dịch này');
         return;
       }
     }
 
     setIsSubmitting(true);
     const orderData = { ...data };
-    if (orderData.LoaiLenh === "ATO" || orderData.LoaiLenh === "ATC") {
+    if (orderData.LoaiLenh === 'ATO' || orderData.LoaiLenh === 'ATC') {
       delete orderData.Gia; // Remove Gia if LoaiLenh is ATO or ATC
     }
 
@@ -321,7 +321,7 @@ const OrderForm = ({
         { maGD: orderToModify.MaGD, updatedOrderData },
         {
           onSuccess: () => {
-            toast.success("Sửa lệnh thành công!");
+            toast.success('Sửa lệnh thành công!');
             setIsSubmitting(false);
             if (onModifyComplete) {
               onModifyComplete();
@@ -329,7 +329,7 @@ const OrderForm = ({
           },
           onError: (error: any) => {
             toast.error(
-              `Sửa lệnh thất bại: ${error.message || "Lỗi không xác định"}`
+              `Sửa lệnh thất bại: ${error.message || 'Lỗi không xác định'}`
             );
             setIsSubmitting(false);
           },
@@ -341,7 +341,7 @@ const OrderForm = ({
         {
           onSuccess: () => {
             toast.success(
-              `Đặt lệnh ${orderType === "M" ? "mua" : "bán"} ${
+              `Đặt lệnh ${orderType === 'M' ? 'mua' : 'bán'} ${
                 data.SoLuong
               } cổ phiếu ${data.MaCP} thành công`
             );
@@ -349,12 +349,12 @@ const OrderForm = ({
 
             // Reset form after successful submission
             setQuantity(0);
-            setPassword("");
+            setPassword('');
             isRefetchBankAccounts(); // Refetch bank accounts to update balance
           },
           onError: (error: any) => {
             toast.error(
-              `Đặt lệnh thất bại: ${error.message || "Lỗi không xác định"}`
+              `Đặt lệnh thất bại: ${error.message || 'Lỗi không xác định'}`
             );
             setIsSubmitting(false);
           },
@@ -375,10 +375,10 @@ const OrderForm = ({
           <div className="flex justify-between items-center">
             <CardTitle>
               {orderToModify
-                ? `Sửa lệnh ${orderToModify.LoaiGD === "M" ? "mua" : "bán"} #${
+                ? `Sửa lệnh ${orderToModify.LoaiGD === 'M' ? 'mua' : 'bán'} #${
                     orderToModify.MaGD
                   }`
-                : `Đặt lệnh ${orderType === "M" ? "mua" : "bán"}`}
+                : `Đặt lệnh ${orderType === 'M' ? 'mua' : 'bán'}`}
             </CardTitle>
             <TabsList>
               <TabsTrigger value="order">Đặt lệnh</TabsTrigger>
@@ -388,10 +388,10 @@ const OrderForm = ({
           <CardDescription>
             {orderToModify
               ? `Sửa lệnh ${
-                  orderToModify.LoaiGD === "M" ? "mua" : "bán"
+                  orderToModify.LoaiGD === 'M' ? 'mua' : 'bán'
                 } cổ phiếu trên sàn Hà Nội`
               : `Đặt lệnh ${
-                  orderType === "M" ? "mua" : "bán"
+                  orderType === 'M' ? 'mua' : 'bán'
                 } cổ phiếu trên sàn Hà Nội`}
           </CardDescription>
         </CardHeader>
@@ -418,9 +418,13 @@ const OrderForm = ({
                       <FormItem>
                         <FormLabel>Mã cổ phiếu</FormLabel>
                         <Input
-                          value={`${selectedStock.MaCP.trim()} - ${
-                            selectedStock.TenCty
-                          }`}
+                          value={
+                            selectedStock
+                              ? `${selectedStock.MaCP.trim()} - ${
+                                  selectedStock.TenCty
+                                }`
+                              : ''
+                          }
                           disabled
                         />
                       </FormItem>
@@ -553,7 +557,7 @@ const OrderForm = ({
                           {fieldState.error.message}
                         </p>
                       )}
-                      {orderType === "B" && (
+                      {orderType === 'B' && (
                         <div className="text-xs text-muted-foreground">
                           Số lượng sở hữu: {myStockQuantity?.soLuong || 0} cổ
                           phiếu {stockCode}
@@ -563,7 +567,7 @@ const OrderForm = ({
                   )}
                 />
 
-                {orderMethod === "LO" && (
+                {orderMethod === 'LO' && (
                   <FormField
                     control={form.control}
                     name="Gia"
@@ -584,7 +588,7 @@ const OrderForm = ({
                         />
                         {selectedStock && (
                           <div className="text-xs text-muted-foreground">
-                            Biên độ giá: {formatCurrency(selectedStock.GiaSan)}{" "}
+                            Biên độ giá: {formatCurrency(selectedStock.GiaSan)}{' '}
                             - {formatCurrency(selectedStock.GiaTran)}
                           </div>
                         )}
@@ -673,10 +677,10 @@ const OrderForm = ({
                     disabled={isSubmitting}
                   >
                     {isSubmitting
-                      ? "Đang xử lý..."
+                      ? 'Đang xử lý...'
                       : orderToModify
-                      ? `Sửa lệnh ${orderType === "M" ? "mua" : "bán"}`
-                      : `Đặt lệnh ${orderType === "M" ? "mua" : "bán"}`}
+                      ? `Sửa lệnh ${orderType === 'M' ? 'mua' : 'bán'}`
+                      : `Đặt lệnh ${orderType === 'M' ? 'mua' : 'bán'}`}
                   </Button>
                   {orderToModify && (
                     <Button
@@ -684,21 +688,21 @@ const OrderForm = ({
                       className="w-full"
                       onClick={() => {
                         form.reset({
-                          orderType: "M",
-                          MaCP: "",
-                          LoaiLenh: "LO",
+                          orderType: 'M',
+                          MaCP: '',
+                          LoaiLenh: 'LO',
                           SoLuong: 100,
                           Gia: selectedStock?.GiaKhopCuoi || 0,
-                          MaTK: "",
-                          transactionPassword: "",
+                          MaTK: '',
+                          transactionPassword: '',
                         });
-                        setOrderType("M");
-                        setStockCode("");
-                        setOrderMethod("LO");
+                        setOrderType('M');
+                        setStockCode('');
+                        setOrderMethod('LO');
                         setQuantity(100);
                         setPrice(selectedStock?.GiaKhopCuoi || 0);
-                        setAccount("");
-                        setPassword("");
+                        setAccount('');
+                        setPassword('');
                         setOrderToModify(null);
                       }}
                     >

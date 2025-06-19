@@ -1,15 +1,15 @@
-import React from "react";
+import React from 'react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { formatCurrency, formatNumber } from "@/utils/format";
-import { cn } from "@/lib/utils";
-import { Stock } from "@/utils/types";
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { formatCurrency, formatNumber } from '@/utils/format';
+import { cn } from '@/lib/utils';
+import { Stock } from '@/utils/types';
 import {
   Table,
   TableBody,
@@ -17,25 +17,25 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table';
 
 interface Props {
   stocks: Stock[];
 }
 
 const DetailedPriceBoardModal = ({ stocks }: Props) => {
-  const theme = localStorage.getItem("vite-ui-theme") || "light";
+  const theme = localStorage.getItem('vite-ui-theme') || 'light';
   const getPriceColor = (
     currentPrice: number,
     referencePrice: number,
     isCeiling: boolean,
     isFloor: boolean
   ) => {
-    if (isCeiling) return "text-purple-600";
-    if (isFloor) return "text-sky-600";
-    if (currentPrice > referencePrice) return "text-green-500";
-    if (currentPrice < referencePrice) return "text-red-500";
-    return "text-amber-500";
+    if (isCeiling) return 'text-purple-600';
+    if (isFloor) return 'text-sky-600';
+    if (currentPrice > referencePrice) return 'text-green-500';
+    if (currentPrice < referencePrice) return 'text-red-500';
+    return 'text-amber-500';
   };
 
   const getPriceBgColor = (
@@ -44,11 +44,11 @@ const DetailedPriceBoardModal = ({ stocks }: Props) => {
     isCeiling: boolean,
     isFloor: boolean
   ) => {
-    if (isCeiling) return "bg-purple-50";
-    if (isFloor) return "bg-sky-50";
-    if (currentPrice > referencePrice) return "bg-green-50";
-    if (currentPrice < referencePrice) return "bg-red-50";
-    return "bg-black-50";
+    if (isCeiling) return 'bg-purple-50';
+    if (isFloor) return 'bg-sky-50';
+    if (currentPrice > referencePrice) return 'bg-green-50';
+    if (currentPrice < referencePrice) return 'bg-red-50';
+    return 'bg-black-50';
   };
 
   const getPriceChange = (currentPrice: number, referencePrice: number) => {
@@ -141,12 +141,12 @@ const DetailedPriceBoardModal = ({ stocks }: Props) => {
 
                 const displayValue = (value: number | undefined | null) =>
                   value === undefined || value === null || value === 0
-                    ? "-"
+                    ? '-'
                     : formatCurrency(value);
 
                 const displayNumber = (value: number | undefined | null) =>
                   value === undefined || value === null || value === 0
-                    ? "-"
+                    ? '-'
                     : formatNumber(value);
 
                 return (
@@ -183,7 +183,7 @@ const DetailedPriceBoardModal = ({ stocks }: Props) => {
                     {/* Matched order */}
                     <TableCell
                       className={cn(
-                        "text-right font-semibold",
+                        'text-right font-semibold',
                         priceColor,
                         priceBgColor
                       )}
@@ -191,13 +191,13 @@ const DetailedPriceBoardModal = ({ stocks }: Props) => {
                       {displayValue(stock.GiaKhopCuoi)}
                     </TableCell>
                     <TableCell className="text-right">
-                      {displayNumber(stock.TongKLKhop)}
+                      {displayNumber(stock.KLKhopCuoi)}
                     </TableCell>
                     <TableCell
-                      className={cn("text-right border-r", priceColor)}
+                      className={cn('text-right border-r', priceColor)}
                     >
-                      {stock.ThayDoi > 0 ? "+" : ""}
-                      {stock.PhanTramThayDoi || "-"}
+                      {stock.ThayDoi > 0 ? '+' : ''}
+                      {stock.PhanTramThayDoi || '-'}
                     </TableCell>
                     {/* Mock sell orders */}
                     <TableCell className="text-right text-red-500">
@@ -220,7 +220,7 @@ const DetailedPriceBoardModal = ({ stocks }: Props) => {
                     </TableCell>
                     {/* Total volume */}
                     <TableCell className="text-right font-medium">
-                      {displayNumber((stock.TongKLKhop || 0) * 1.5)}
+                      {displayNumber(stock.TongKLKhop || 0)}
                     </TableCell>
                     <TableCell className="text-right text-green-500">
                       {displayValue(stock.GiaCaoNhat)}

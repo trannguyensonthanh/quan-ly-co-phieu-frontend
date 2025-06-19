@@ -1,6 +1,6 @@
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import {
   Dialog,
   DialogContent,
@@ -9,9 +9,9 @@ import {
   DialogTitle,
   DialogFooter,
   DialogClose,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Form,
   FormControl,
@@ -19,22 +19,23 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { User } from "@/utils/types";
+} from '@/components/ui/form';
+import { User } from '@/utils/types';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { useUpdateAccountMutation } from "@/queries/admin.queries";
+} from '@/components/ui/select';
+import { useUpdateAccountMutation } from '@/queries/admin.queries';
+import { useGoongAddressAutocomplete } from '@/hooks/useGoongAddressAutocomplete';
 
 interface UserEditDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   user: User | null;
-  onSave: (newData: Omit<User, "id" | "role">) => void;
+  onSave: (newData: Omit<User, 'id' | 'role'>) => void;
 }
 
 export default function UserEditDialog({
@@ -46,24 +47,24 @@ export default function UserEditDialog({
   // If no user selected, do not render dialog
   const userSchema = z.object({
     username: z.string().optional(),
-    HoTen: z.string().min(2, "Họ tên phải có ít nhất 2 ký tự"),
-    Email: z.string().email("Email không hợp lệ"),
+    HoTen: z.string().min(2, 'Họ tên phải có ít nhất 2 ký tự'),
+    Email: z.string().email('Email không hợp lệ'),
     NgaySinh: z
       .string()
-      .regex(/^\d{4}-\d{2}-\d{2}$/, "Ngày sinh phải theo định dạng YYYY-MM-DD"),
-    DiaChi: z.string().min(5, "Địa chỉ phải có ít nhất 5 ký tự"),
-    Phone: z.string().min(10, "Số điện thoại phải có ít nhất 10 ký tự"),
-    CMND: z.string().min(9, "Số CMND phải có ít nhất 9 ký tự"),
-    GioiTinh: z.enum(["Nam", "Nữ"]),
-    role: z.enum(["NhanVien", "NhaDauTu"]),
+      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Ngày sinh phải theo định dạng YYYY-MM-DD'),
+    DiaChi: z.string().min(5, 'Địa chỉ phải có ít nhất 5 ký tự'),
+    Phone: z.string().min(10, 'Số điện thoại phải có ít nhất 10 ký tự'),
+    CMND: z.string().min(9, 'Số CMND phải có ít nhất 9 ký tự'),
+    GioiTinh: z.enum(['Nam', 'Nữ']),
+    role: z.enum(['NhanVien', 'NhaDauTu']),
   });
 
   // This type will have all required fields
   type UserEditValues = z.infer<typeof userSchema>;
-  console.log("UserEditDialog user:", user);
+  console.log('UserEditDialog user:', user);
   const defaultValues: UserEditValues = user
     ? {
-        username: user.username || "",
+        username: user.username || '',
         HoTen: user.HoTen,
         Email: user.Email,
         NgaySinh: user.NgaySinh,
@@ -74,34 +75,34 @@ export default function UserEditDialog({
         role: user.role,
       }
     : {
-        username: "",
-        HoTen: "",
-        Email: "",
-        NgaySinh: "",
-        DiaChi: "",
-        Phone: "",
-        CMND: "",
-        GioiTinh: "Nam",
-        role: "NhaDauTu",
+        username: '',
+        HoTen: '',
+        Email: '',
+        NgaySinh: '',
+        DiaChi: '',
+        Phone: '',
+        CMND: '',
+        GioiTinh: 'Nam',
+        role: 'NhaDauTu',
       };
 
   const form = useForm<UserEditValues>({
     resolver: zodResolver(userSchema),
     defaultValues,
     values: defaultValues, // keep in sync if user changed!
-    mode: "onChange",
+    mode: 'onChange',
   });
 
   // Convert ISO date string to YYYY-MM-DD format for the form
   if (defaultValues.NgaySinh) {
     defaultValues.NgaySinh = new Date(defaultValues.NgaySinh)
       .toISOString()
-      .split("T")[0];
+      .split('T')[0];
   }
 
   function handleSubmit(values: UserEditValues) {
     // Explicitly cast to the required type to ensure type safety
-    console.log("UserEditDialog values:", values);
+    console.log('UserEditDialog values:', values);
     const userData = {
       username: values.username,
       HoTen: values.HoTen,
@@ -117,6 +118,13 @@ export default function UserEditDialog({
     onSave(userData);
     onOpenChange(false);
   }
+
+  const {
+    addresses,
+    loading: addressLoading,
+    error: addressError,
+    searchAddress,
+  } = useGoongAddressAutocomplete();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -192,8 +200,44 @@ export default function UserEditDialog({
                   <FormItem>
                     <FormLabel>Địa chỉ</FormLabel>
                     <FormControl>
-                      <Input placeholder="123 Đường ABC, Quận XYZ" {...field} />
+                      <div className="relative">
+                        <Input
+                          placeholder="123 Đường ABC, Quận XYZ"
+                          {...field}
+                          onChange={(e) => {
+                            field.onChange(e);
+                            searchAddress(e.target.value);
+                          }}
+                        />
+                        {addressLoading && (
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
+                            Đang tìm...
+                          </span>
+                        )}
+                      </div>
                     </FormControl>
+                    {/* Gợi ý địa chỉ */}
+                    {addresses.length > 0 && (
+                      <div className="absolute z-10 mt-1 w-1/2 rounded shadow-lg border max-h-48 overflow-auto bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
+                        {addresses.map((addr, idx) => (
+                          <div
+                            key={addr + idx}
+                            className="px-3 py-2 cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900 text-gray-800 dark:text-gray-100 text-sm"
+                            onClick={() => {
+                              form.setValue('DiaChi', addr);
+                              searchAddress('');
+                            }}
+                          >
+                            {addr}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {addressError && (
+                      <div className="text-xs text-red-400 mt-1">
+                        {addressError}
+                      </div>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}

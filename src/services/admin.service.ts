@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // src/services/admin.service.ts
-import TokenService from "@/services/token.service";
-import apiHelper from "./apiHelper";
+import TokenService from '@/services/token.service';
+import apiHelper from './apiHelper';
 
-const API_URL = "/admin";
+const API_URL = '/admin';
 
 // Định nghĩa kiểu dữ liệu trả về từ API (thường là message hoặc data cụ thể)
 export interface SimpleMessageResponse {
@@ -11,14 +11,13 @@ export interface SimpleMessageResponse {
   [key: string]: any; // Cho phép các thuộc tính khác nếu có
 }
 
-interface BackupHistoryItem {
-  id: string; // ID của bản backup
-  fileName: string;
-  filePath: string; // Đường dẫn đến file backup trên server
-  fileSize: number; // Kích thước file backup (bytes)
-  fileSizeMB: number; // Kích thước file backup (MB)
-  createdAt: string | Date; // API trả về string ISO, có thể convert sang Date
-  cleanupPerformed: boolean; // True nếu đã thực hiện xóa bản backup cũ
+// Định nghĩa kiểu dữ liệu cho một mục lịch sử backup (dùng cho API backup-history)
+export interface BackupHistoryItem {
+  position: number; // Vị trí trong danh sách (thường dùng để sắp xếp)
+  name: string; // Tên backup (ví dụ: "Full Backup - 2023-10-30T09:00:00.789Z")
+  description: string; // Mô tả (ví dụ: "Full Backup" hoặc "Transaction Log Backup")
+  type: number; // Loại backup: 1 = Full, 2 = Log, v.v.
+  backupDate: string; // Ngày backup (ISO string)
 }
 
 export type BackupHistoryResponse = BackupHistoryItem[]; // API trả về mảng
@@ -35,16 +34,28 @@ const createBackupDevice = (): Promise<SimpleMessageResponse> => {
 // --- Backup Operations ---
 /**
  * Gọi API để thực hiện Full Backup.
- * @param deleteAllOld True nếu muốn xóa các bản backup cũ sau khi backup mới thành công.
+ * @param options Object chứa deleteAllOld (True nếu muốn xóa các bản backup cũ sau khi backup mới thành công) và backupType ('FULL' hoặc 'PITR').
  */
-const performBackup = (
-  deleteAllOld: boolean = false
-): Promise<SimpleMessageResponse> => {
+const performBackup = ({
+  initDevice = false,
+  backupType = 'FULL', // Mặc định là FULL, có thể là 'PITR' nếu cần
+}: {
+  initDevice?: boolean;
+  backupType?: string;
+}): Promise<SimpleMessageResponse> => {
   const token = TokenService.getLocalAccessToken();
-  return apiHelper.post(`${API_URL}/backup`, {
-    deleteAllOld,
-    token,
+  console.log('Performing backup with options:', {
+    initDevice,
+    backupType,
   });
+  return apiHelper.post(
+    `${API_URL}/backup`,
+    {
+      initDevice,
+      backupType, // Thêm loại backup vào payload
+    },
+    token
+  );
 };
 
 // --- Restore Operations ---
@@ -54,12 +65,12 @@ const performBackup = (
  * @param pointInTime Thời điểm PITR (ISO string) hoặc null/undefined để restore full.
  */
 const performRestore = (
-  backupFileName: string,
+  positions: Array<number>,
   pointInTime?: string | null
 ): Promise<SimpleMessageResponse> => {
   const token = TokenService.getLocalAccessToken();
-  const payload: { backupFileName: string; pointInTime?: string } = {
-    backupFileName,
+  const payload: { positions: Array<number>; pointInTime?: string } = {
+    positions,
   };
   if (pointInTime) {
     payload.pointInTime = pointInTime;
@@ -68,13 +79,6 @@ const performRestore = (
 };
 
 // --- Backup History ---
-/**
- * Gọi API để lấy lịch sử các bản Full Backup.
- */
-const getBackupHistory = (): Promise<BackupHistoryResponse> => {
-  const token = TokenService.getLocalAccessToken();
-  return apiHelper.get(`${API_URL}/backup-history`, token); // Không cần body
-};
 
 /**
  * Gọi API để lấy danh sách lịch sử backup (MỚI).
@@ -152,10 +156,10 @@ const getAllUsers = (): Promise<any[]> => {
  */
 const deleteAccount = (
   accountId: string,
-  role: "NhanVien" | "NhaDauTu"
+  role: 'NhanVien' | 'NhaDauTu'
 ): Promise<SimpleMessageResponse> => {
   const token = TokenService.getLocalAccessToken();
-  console.log("Deleting account:", accountId, "with role:", role);
+  console.log('Deleting account:', accountId, 'with role:', role);
   const userId = accountId.trim(); // Xóa khoảng trắng nếu có
   return apiHelper.delete(`${API_URL}/accounts/${userId}?role=${role}`, token);
 };
@@ -184,12 +188,12 @@ const getAllCashTransactions = (
 ): Promise<any[]> => {
   const token = TokenService.getLocalAccessToken();
   const queryParams = new URLSearchParams();
-  if (startDate) queryParams.append("tuNgay", startDate);
-  if (endDate) queryParams.append("denNgay", endDate);
+  if (startDate) queryParams.append('tuNgay', startDate);
+  if (endDate) queryParams.append('denNgay', endDate);
   const queryString = queryParams.toString();
-  console.log("Query string for cash transactions:", queryString);
+  console.log('Query string for cash transactions:', queryString);
   return apiHelper.get(
-    `${API_URL}/cash-transactions${queryString ? `?${queryString}` : ""}`,
+    `${API_URL}/cash-transactions${queryString ? `?${queryString}` : ''}`,
     token
   );
 };
@@ -277,7 +281,7 @@ const getMarketStatus = (): Promise<{
 const getAllOrders = (tuNgay: string, denNgay: string): Promise<any> => {
   if (!tuNgay || !denNgay)
     return Promise.reject(
-      new Error("Ngày bắt đầu và Ngày kết thúc là bắt buộc")
+      new Error('Ngày bắt đầu và Ngày kết thúc là bắt buộc')
     );
   const params = { tuNgay, denNgay };
   const token = TokenService.getLocalAccessToken();
@@ -293,13 +297,13 @@ const getAllOrders = (tuNgay: string, denNgay: string): Promise<any> => {
  */
 const resetUserPassword = (
   accountId: string,
-  role: "NhanVien" | "NhaDauTu",
+  role: 'NhanVien' | 'NhaDauTu',
   newPassword: string,
   confirmPassword: string
 ): Promise<SimpleMessageResponse> => {
   if (!newPassword || !confirmPassword || newPassword !== confirmPassword) {
     return Promise.reject(
-      new Error("Passwords must be provided and must match.")
+      new Error('Passwords must be provided and must match.')
     );
   }
   const token = TokenService.getLocalAccessToken();
@@ -320,7 +324,7 @@ const distributeStock = (
   distributionList: { maNDT: string; [key: string]: any }[]
 ): Promise<SimpleMessageResponse> => {
   const token = TokenService.getLocalAccessToken();
-  console.log("Distributing stock:", maCP, "with data:", distributionList);
+  console.log('Distributing stock:', maCP, 'with data:', distributionList);
   return apiHelper.post(
     `${API_URL}/stocks/${maCP}/distribute`,
     { distributionList },
@@ -376,12 +380,20 @@ const relistStock = (
   return apiHelper.put(`${API_URL}/stocks/${maCP}/relist`, { giaTC }, token);
 };
 
+/**
+ * Gọi API để chuẩn bị giá cho ngày hiện tại.
+ */
+const prepareTodayPrices = (): Promise<SimpleMessageResponse> => {
+  const token = TokenService.getLocalAccessToken();
+  return apiHelper.post(`${API_URL}/market/prepare-today-prices`, {}, token);
+};
+
 // Export service object
 const AdminService = {
   createBackupDevice,
   performBackup,
   performRestore,
-  getBackupHistory,
+
   // updateUserPassword,
   clearUserPassword,
   createAccount,
@@ -405,6 +417,7 @@ const AdminService = {
   updateInvestorDistribution,
   revokeInvestorDistribution,
   relistStock,
+  prepareTodayPrices,
 };
 
 export default AdminService;

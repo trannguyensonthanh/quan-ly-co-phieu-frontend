@@ -1,37 +1,25 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // src/queries/admin.queries.ts
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import AdminService from "../services/admin.service";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import AdminService from '../services/admin.service';
 
 // Import kiểu dữ liệu nếu cần (từ service hoặc định nghĩa riêng)
 import type {
   BackupHistoryResponse,
   SimpleMessageResponse,
-} from "../services/admin.service";
-import { APIError } from "@/services/apiHelper";
-import TokenService from "@/services/token.service";
+} from '../services/admin.service';
+import { APIError } from '@/services/apiHelper';
+import TokenService from '@/services/token.service';
 
 // --- Query Keys ---
 const adminKeys = {
-  all: ["admin"] as const,
-  backupHistory: () => [...adminKeys.all, "backupHistory"] as const,
-  allOrders: () => [...adminKeys.all, "orders", "all"] as const,
+  all: ['admin'] as const,
+  backupHistory: () => [...adminKeys.all, 'backupHistory'] as const,
+  allOrders: () => [...adminKeys.all, 'orders', 'all'] as const,
   // Thêm các key khác nếu cần quản lý state khác liên quan đến admin
 };
 
 // --- Queries ---
-
-/**
- * Hook để lấy lịch sử sao lưu Full Backup.
- */
-export const useBackupHistoryQuery = () => {
-  return useQuery<BackupHistoryResponse, Error>({
-    queryKey: adminKeys.backupHistory(),
-    queryFn: AdminService.getBackupHistory,
-    staleTime: 1000 * 60, // Lịch sử backup có thể thay đổi, staleTime ngắn hơn (1 phút)
-    // enabled: // Thường luôn bật nếu component admin hiển thị
-  });
-};
 
 // --- Mutations ---
 
@@ -44,11 +32,11 @@ export const useCreateDeviceMutation = () => {
     // Input là void vì không cần tham số
     mutationFn: () => AdminService.createBackupDevice(),
     onSuccess: (data) => {
-      console.log("Create/Check device successful:", data.message);
+      console.log('Create/Check device successful:', data.message);
       // Hiển thị thông báo thành công cho admin
     },
     onError: (error: any) => {
-      console.error("Create/Check device failed:", error);
+      console.error('Create/Check device failed:', error);
       // Hiển thị lỗi (error.message) cho admin
     },
   });
@@ -60,16 +48,21 @@ export const useCreateDeviceMutation = () => {
 export const usePerformBackupMutation = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<SimpleMessageResponse, Error, { deleteAllOld: boolean }>({
-    mutationFn: ({ deleteAllOld }) => AdminService.performBackup(deleteAllOld),
+  return useMutation<
+    SimpleMessageResponse,
+    Error,
+    { initDevice: boolean; backupType: string }
+  >({
+    mutationFn: ({ initDevice, backupType }) =>
+      AdminService.performBackup({ initDevice, backupType }),
     onSuccess: (data) => {
-      console.log("Backup successful:", data.message, "File:", data.fileName);
+      console.log('Backup successful:', data.message, 'File:', data.fileName);
       // Quan trọng: Vô hiệu hóa query lịch sử để cập nhật danh sách mới nhất
       queryClient.invalidateQueries({ queryKey: adminKeys.backupHistory() });
       // Hiển thị thông báo thành công cho admin
     },
     onError: (error: any) => {
-      console.error("Backup failed:", error);
+      console.error('Backup failed:', error);
       // Hiển thị lỗi cho admin
     },
   });
@@ -84,18 +77,18 @@ export const usePerformRestoreMutation = () => {
   return useMutation<
     SimpleMessageResponse,
     Error,
-    { backupFileName: string; pointInTime?: string | null }
+    { positions: Array<number>; pointInTime?: string | null }
   >({
-    mutationFn: ({ backupFileName, pointInTime }) =>
-      AdminService.performRestore(backupFileName, pointInTime),
+    mutationFn: ({ positions, pointInTime }) =>
+      AdminService.performRestore(positions, pointInTime),
     onSuccess: (data) => {
-      console.log("Restore successful:", data.message);
+      console.log('Restore successful:', data.message);
       // Hiển thị thông báo thành công lớn, cảnh báo người dùng cần kiểm tra lại hệ thống
       // Có thể cần reload trang hoặc làm gì đó để user thấy dữ liệu mới
       // queryClient.clear(); // Xóa cache để buộc load lại mọi thứ? Cân nhắc
     },
     onError: (error: any) => {
-      console.error("Restore failed:", error);
+      console.error('Restore failed:', error);
       // Hiển thị lỗi chi tiết cho admin
     },
   });
@@ -145,11 +138,11 @@ export const useAdminClearPasswordMutation = () => {
   return useMutation<SimpleMessageResponse, Error, { loginname: string }>({
     mutationFn: ({ loginname }) => AdminService.clearUserPassword(loginname),
     onSuccess: (data) => {
-      console.log("Admin cleared user password:", data.message);
+      console.log('Admin cleared user password:', data.message);
       // Hiển thị thông báo thành công
     },
     onError: (error: any) => {
-      console.error("Admin clear password failed:", error);
+      console.error('Admin clear password failed:', error);
       // Hiển thị lỗi
     },
   });
@@ -163,12 +156,12 @@ export const useCreateAccountMutation = () => {
   return useMutation<SimpleMessageResponse, Error, Record<string, any>>({
     mutationFn: (accountData) => AdminService.createAccount(accountData),
     onSuccess: (data) => {
-      console.log("Account created successfully:", data.message);
+      console.log('Account created successfully:', data.message);
       // Hiển thị thông báo thành công cho admin
-      queryClient.invalidateQueries({ queryKey: [...adminKeys.all, "users"] });
+      queryClient.invalidateQueries({ queryKey: [...adminKeys.all, 'users'] });
     },
     onError: (error: any) => {
-      console.error("Account creation failed:", error);
+      console.error('Account creation failed:', error);
       // Hiển thị lỗi chi tiết cho admin
     },
   });
@@ -179,7 +172,7 @@ export const useCreateAccountMutation = () => {
  */
 export const useGetAllUsersQuery = () => {
   return useQuery<any[], Error>({
-    queryKey: [...adminKeys.all, "users"],
+    queryKey: [...adminKeys.all, 'users'],
     queryFn: () => AdminService.getAllUsers(),
     staleTime: 1000 * 60 * 5, // Dữ liệu người dùng ít thay đổi, có thể để staleTime dài hơn (5 phút)
     // Xử lý lỗi thông qua error từ kết quả query
@@ -195,17 +188,17 @@ export const useDeleteAccountMutation = () => {
   return useMutation<
     SimpleMessageResponse,
     Error,
-    { accountId: string; role: "NhanVien" | "NhaDauTu" }
+    { accountId: string; role: 'NhanVien' | 'NhaDauTu' }
   >({
     mutationFn: ({ accountId, role }) =>
       AdminService.deleteAccount(accountId, role),
     onSuccess: (data) => {
-      console.log("Account deleted successfully:", data.message);
+      console.log('Account deleted successfully:', data.message);
       // Hiển thị thông báo thành công cho admin
-      queryClient.invalidateQueries({ queryKey: [...adminKeys.all, "users"] });
+      queryClient.invalidateQueries({ queryKey: [...adminKeys.all, 'users'] });
     },
     onError: (error: any) => {
-      console.error("Account deletion failed:", error);
+      console.error('Account deletion failed:', error);
       // Hiển thị lỗi chi tiết cho admin
     },
   });
@@ -225,12 +218,12 @@ export const useUpdateAccountMutation = () => {
     mutationFn: ({ accountId, accountData }) =>
       AdminService.updateAccount(accountId, accountData),
     onSuccess: (data) => {
-      console.log("Account updated successfully:", data.message);
+      console.log('Account updated successfully:', data.message);
       // Hiển thị thông báo thành công cho admin
-      queryClient.invalidateQueries({ queryKey: [...adminKeys.all, "users"] });
+      queryClient.invalidateQueries({ queryKey: [...adminKeys.all, 'users'] });
     },
     onError: (error: any) => {
-      console.error("Account update failed:", error);
+      console.error('Account update failed:', error);
       // Hiển thị lỗi chi tiết cho admin
     },
   });
@@ -244,7 +237,7 @@ export const useGetAllCashTransactionsQuery = (
   endDate?: string
 ) => {
   return useQuery<any[], Error>({
-    queryKey: [...adminKeys.all, "cashTransactions", { startDate, endDate }],
+    queryKey: [...adminKeys.all, 'cashTransactions', { startDate, endDate }],
     queryFn: () => AdminService.getAllCashTransactions(startDate, endDate),
     staleTime: 1000 * 60 * 5, // Dữ liệu giao dịch ít thay đổi, có thể để staleTime dài hơn (5 phút)
     enabled: !!startDate && !!endDate, // Chỉ chạy query nếu có cả startDate và endDate
@@ -258,11 +251,11 @@ export const usePrepareNextDayPricesMutation = () => {
   return useMutation<SimpleMessageResponse, Error, void>({
     mutationFn: () => AdminService.prepareNextDayPrices(),
     onSuccess: (data) => {
-      console.log("Prepared next day prices successfully:", data.message);
+      console.log('Prepared next day prices successfully:', data.message);
       // Hiển thị thông báo thành công cho admin
     },
     onError: (error: any) => {
-      console.error("Preparing next day prices failed:", error);
+      console.error('Preparing next day prices failed:', error);
       // Hiển thị lỗi chi tiết cho admin
     },
   });
@@ -275,11 +268,11 @@ export const useTriggerATOMutation = () => {
   return useMutation<SimpleMessageResponse, Error, void>({
     mutationFn: () => AdminService.triggerATO(),
     onSuccess: (data) => {
-      console.log("ATO triggered successfully:", data.message);
+      console.log('ATO triggered successfully:', data.message);
       // Hiển thị thông báo thành công cho admin
     },
     onError: (error: any) => {
-      console.error("ATO trigger failed:", error);
+      console.error('ATO trigger failed:', error);
       // Hiển thị lỗi chi tiết cho admin
     },
   });
@@ -292,11 +285,11 @@ export const useTriggerATCMutation = () => {
   return useMutation<SimpleMessageResponse, Error, void>({
     mutationFn: () => AdminService.triggerATC(),
     onSuccess: (data) => {
-      console.log("ATC triggered successfully:", data.message);
+      console.log('ATC triggered successfully:', data.message);
       // Hiển thị thông báo thành công cho admin
     },
     onError: (error: any) => {
-      console.error("ATC trigger failed:", error);
+      console.error('ATC trigger failed:', error);
       // Hiển thị lỗi chi tiết cho admin
     },
   });
@@ -309,11 +302,11 @@ export const useTriggerContinuousMutation = () => {
   return useMutation<SimpleMessageResponse, Error, void>({
     mutationFn: () => AdminService.triggerContinuous(),
     onSuccess: (data) => {
-      console.log("Continuous matching triggered successfully:", data.message);
+      console.log('Continuous matching triggered successfully:', data.message);
       // Hiển thị thông báo thành công cho admin
     },
     onError: (error: any) => {
-      console.error("Continuous matching trigger failed:", error);
+      console.error('Continuous matching trigger failed:', error);
       // Hiển thị lỗi chi tiết cho admin
     },
   });
@@ -326,11 +319,11 @@ export const useSetMarketModeAutoMutation = () => {
   return useMutation<SimpleMessageResponse, Error, void>({
     mutationFn: () => AdminService.setMarketModeAuto(),
     onSuccess: (data) => {
-      console.log("Market mode set to Auto successfully:", data.message);
+      console.log('Market mode set to Auto successfully:', data.message);
       // Hiển thị thông báo thành công cho admin
     },
     onError: (error: any) => {
-      console.error("Setting market mode to Auto failed:", error);
+      console.error('Setting market mode to Auto failed:', error);
       // Hiển thị lỗi chi tiết cho admin
     },
   });
@@ -343,11 +336,11 @@ export const useSetMarketModeManualMutation = () => {
   return useMutation<SimpleMessageResponse, Error, void>({
     mutationFn: () => AdminService.setMarketModeManual(),
     onSuccess: (data) => {
-      console.log("Market mode set to Manual successfully:", data.message);
+      console.log('Market mode set to Manual successfully:', data.message);
       // Hiển thị thông báo thành công cho admin
     },
     onError: (error: any) => {
-      console.error("Setting market mode to Manual failed:", error);
+      console.error('Setting market mode to Manual failed:', error);
       // Hiển thị lỗi chi tiết cho admin
     },
   });
@@ -358,7 +351,7 @@ export const useSetMarketModeManualMutation = () => {
  */
 export const useGetMarketStatusQuery = () => {
   return useQuery<{ operatingMode: string; sessionState: string }, Error>({
-    queryKey: [...adminKeys.all, "marketStatus"],
+    queryKey: [...adminKeys.all, 'marketStatus'],
     queryFn: () => AdminService.getMarketStatus(),
     staleTime: 1000 * 60, // Dữ liệu trạng thái thị trường có thể thay đổi, staleTime ngắn hơn (1 phút)
   });
@@ -381,7 +374,7 @@ export const useGetAllAdminOrdersQuery = (
     queryFn: () => {
       if (!isValid)
         return Promise.reject(
-          new APIError("Ngày bắt đầu và Ngày kết thúc là bắt buộc", 400)
+          new APIError('Ngày bắt đầu và Ngày kết thúc là bắt buộc', 400)
         );
       // Ép kiểu vì đã kiểm tra isValid
       return AdminService.getAllOrders(tuNgay as string, denNgay as string);
@@ -400,7 +393,7 @@ export const useResetUserPasswordMutation = () => {
     Error,
     {
       accountId: string;
-      role: "NhanVien" | "NhaDauTu";
+      role: 'NhanVien' | 'NhaDauTu';
       newPassword: string;
       confirmPassword: string;
     }
@@ -413,11 +406,11 @@ export const useResetUserPasswordMutation = () => {
         confirmPassword
       ),
     onSuccess: (data) => {
-      console.log("Password reset successfully:", data.message);
+      console.log('Password reset successfully:', data.message);
       // Hiển thị thông báo thành công cho admin
     },
     onError: (error: any) => {
-      console.error("Password reset failed:", error);
+      console.error('Password reset failed:', error);
       // Hiển thị lỗi chi tiết cho admin
     },
   });
@@ -435,11 +428,11 @@ export const useDistributeStockMutation = () => {
     mutationFn: ({ maCP, distributionList }) =>
       AdminService.distributeStock(maCP, distributionList),
     onSuccess: (data) => {
-      console.log("Stock distributed successfully:", data.message);
+      console.log('Stock distributed successfully:', data.message);
       // Hiển thị thông báo thành công cho admin
     },
     onError: (error: any) => {
-      console.error("Stock distribution failed:", error);
+      console.error('Stock distribution failed:', error);
       // Hiển thị lỗi chi tiết cho admin
     },
   });
@@ -457,11 +450,11 @@ export const useUpdateInvestorDistributionMutation = () => {
     mutationFn: ({ maCP, maNDT, newSoLuong }) =>
       AdminService.updateInvestorDistribution(maCP, maNDT, newSoLuong),
     onSuccess: (data) => {
-      console.log("Investor distribution updated successfully:", data.message);
+      console.log('Investor distribution updated successfully:', data.message);
       // Hiển thị thông báo thành công cho admin
     },
     onError: (error: any) => {
-      console.error("Updating investor distribution failed:", error);
+      console.error('Updating investor distribution failed:', error);
       // Hiển thị lỗi chi tiết cho admin
     },
   });
@@ -479,11 +472,11 @@ export const useRevokeInvestorDistributionMutation = () => {
     mutationFn: ({ maCP, maNDT }) =>
       AdminService.revokeInvestorDistribution(maCP, maNDT),
     onSuccess: (data) => {
-      console.log("Investor distribution revoked successfully:", data.message);
+      console.log('Investor distribution revoked successfully:', data.message);
       // Hiển thị thông báo thành công cho admin
     },
     onError: (error: any) => {
-      console.error("Revoking investor distribution failed:", error);
+      console.error('Revoking investor distribution failed:', error);
       // Hiển thị lỗi chi tiết cho admin
     },
   });
@@ -500,11 +493,28 @@ export const useRelistStockMutation = () => {
   >({
     mutationFn: ({ maCP, giaTC }) => AdminService.relistStock(maCP, giaTC),
     onSuccess: (data) => {
-      console.log("Stock relisted successfully:", data.message);
+      console.log('Stock relisted successfully:', data.message);
       // Hiển thị thông báo thành công cho admin
     },
     onError: (error: any) => {
-      console.error("Relisting stock failed:", error);
+      console.error('Relisting stock failed:', error);
+      // Hiển thị lỗi chi tiết cho admin
+    },
+  });
+};
+
+/**
+ * Hook để chuẩn bị giá cho ngày hiện tại.
+ */
+export const usePrepareTodayPricesMutation = () => {
+  return useMutation<SimpleMessageResponse, Error, void>({
+    mutationFn: () => AdminService.prepareTodayPrices(),
+    onSuccess: (data) => {
+      console.log('Prepared today prices successfully:', data.message);
+      // Hiển thị thông báo thành công cho admin
+    },
+    onError: (error: any) => {
+      console.error('Preparing today prices failed:', error);
       // Hiển thị lỗi chi tiết cho admin
     },
   });
