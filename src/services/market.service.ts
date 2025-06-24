@@ -69,6 +69,17 @@ export interface MarketBoardItem {
   GiaBan3?: number;
   KLBan3?: number;
   TongGTGD?: number;
+  // Các trường khác từ DB
+  DiaChi?: string;
+}
+
+export interface StockPriceHistoryItem {
+  time: number; // Unix timestamp
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
 }
 
 export type MarketBoardResponse = MarketBoardItem[];
@@ -92,9 +103,25 @@ const getStockMarketData = (maCP: string): Promise<any> => {
   return apiHelper.get(`${API_URL}/stocks/${maCP}`, token);
 };
 
+/**
+ * NEW FUNCTION: Lấy dữ liệu lịch sử giá của một cổ phiếu để vẽ biểu đồ.
+ * @param maCP Mã cổ phiếu.
+ * @param params Các tham số truy vấn như resolution, from, to.
+ */
+const getStockPriceHistory = (
+  maCP: string,
+  params: { resolution: string; from: number; to: number }
+): Promise<StockPriceHistoryItem[]> => {
+  if (!maCP) return Promise.reject(new Error('Mã CP là bắt buộc'));
+  const token = TokenService.getLocalAccessToken();
+  // apiHelper.get đã hỗ trợ truyền params, sẽ tự động chuyển thành query string
+  return apiHelper.get(`${API_URL}/stocks/${maCP}/history`, token, params);
+};
+
 const MarketService = {
   getMarketBoard,
   getStockMarketData,
+  getStockPriceHistory,
 };
 
 export default MarketService;

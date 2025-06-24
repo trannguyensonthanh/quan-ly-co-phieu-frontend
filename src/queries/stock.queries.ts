@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // src/queries/stock.queries.ts
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import StockService from "../services/stock.service";
-import MarketService from "../services/market.service"; // Import MarketService
-import { APIError } from "../services/apiHelper";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import StockService from '../services/stock.service';
+import MarketService from '../services/market.service'; // Import MarketService
+import { APIError } from '../services/apiHelper';
 // Import kiểu dữ liệu
 import type {
   CoPhieu,
@@ -11,29 +11,29 @@ import type {
   UpdateCoPhieuPayload,
   StockOrderStatementResponse,
   ShareholdersResponse,
-} from "../services/stock.service";
-import type { MarketBoardResponse } from "../services/market.service";
-import type { SimpleMessageResponse } from "../services/admin.service"; // Dùng lại kiểu message chung
-import AdminService from "../services/admin.service";
+} from '../services/stock.service';
+import type { MarketBoardResponse } from '../services/market.service';
+import type { SimpleMessageResponse } from '../services/admin.service'; // Dùng lại kiểu message chung
+import AdminService from '../services/admin.service';
 
 // --- Query Keys ---
 const stockKeys = {
-  all: ["stocks"] as const, // Key cho danh sách tất cả cổ phiếu
-  lists: () => [...stockKeys.all, "list"] as const,
-  details: () => [...stockKeys.all, "detail"] as const,
+  all: ['stocks'] as const, // Key cho danh sách tất cả cổ phiếu
+  lists: () => [...stockKeys.all, 'list'] as const,
+  details: () => [...stockKeys.all, 'detail'] as const,
   detail: (maCP: string | undefined) => [...stockKeys.details(), maCP] as const, // Key cho chi tiết 1 CP
   orders: (maCP: string | undefined) =>
-    [...stockKeys.all, "orders", maCP] as const, // Key cho sao kê lệnh của CP
+    [...stockKeys.all, 'orders', maCP] as const, // Key cho sao kê lệnh của CP
   history: (maCP: string | undefined) =>
-    [...stockKeys.all, "history", maCP] as const,
+    [...stockKeys.all, 'history', maCP] as const,
   shareholders: (maCP: string | undefined) =>
-    [...stockKeys.detail(maCP), "shareholders"] as const,
+    [...stockKeys.detail(maCP), 'shareholders'] as const,
 };
 
 export const marketKeys = {
-  all: ["market"] as const,
-  board: () => [...marketKeys.all, "board"] as const, // Key cho bảng giá
-  stockDetails: () => [...marketKeys.all, "stockDetails"] as const,
+  all: ['market'] as const,
+  board: () => [...marketKeys.all, 'board'] as const, // Key cho bảng giá
+  stockDetails: () => [...marketKeys.all, 'stockDetails'] as const,
   stockDetail: (maCP: string | undefined) =>
     [...marketKeys.stockDetails(), maCP] as const,
 };
@@ -59,7 +59,7 @@ export const useGetStockByIdQuery = (maCP: string | undefined) => {
   return useQuery<CoPhieu, Error>({
     queryKey: stockKeys.detail(maCP),
     queryFn: () => {
-      if (!maCP) return Promise.reject(new Error("Mã CP không được trống")); // Bảo vệ queryFn
+      if (!maCP) return Promise.reject(new Error('Mã CP không được trống')); // Bảo vệ queryFn
       return StockService.getStockById(maCP);
     },
     enabled: !!maCP, // Chỉ chạy query khi maCP có giá trị
@@ -85,7 +85,7 @@ export const useGetStockOrdersQuery = (
     queryFn: () => {
       if (!isValid)
         return Promise.reject(
-          new Error("Mã CP, Ngày bắt đầu, Ngày kết thúc là bắt buộc")
+          new Error('Mã CP, Ngày bắt đầu, Ngày kết thúc là bắt buộc')
         );
       return StockService.getStockOrders(
         maCP as string,
@@ -124,16 +124,16 @@ export const useCreateStockMutation = () => {
   return useMutation<CoPhieu, Error, CreateCoPhieuPayload>({
     mutationFn: StockService.createStock,
     onSuccess: (newStock) => {
-      console.log("Stock created:", newStock);
+      console.log('Stock created:', newStock);
       // Vô hiệu hóa query lấy danh sách để cập nhật UI
       queryClient.invalidateQueries({ queryKey: stockKeys.lists() });
       // Có thể setQueryData cho cache chi tiết nếu muốn tối ưu
       queryClient.setQueryData(stockKeys.detail(newStock.MaCP), newStock);
       // Lấy lại toàn bộ lịch sử hoàn tác
-      queryClient.invalidateQueries({ queryKey: ["admin", "undo-logs"] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'undo-logs'] });
     },
     onError: (error: any) => {
-      console.error("Create stock failed:", error);
+      console.error('Create stock failed:', error);
       // Hiển thị lỗi
     },
   });
@@ -154,18 +154,18 @@ export const useUpdateStockMutation = () => {
       StockService.updateStock(maCP, stockData),
     onSuccess: (updatedStock, variables) => {
       // variables chứa { maCP, stockData } đã gửi lên
-      console.log("Stock updated:", updatedStock);
+      console.log('Stock updated:', updatedStock);
       // Vô hiệu hóa cả danh sách và chi tiết để đảm bảo dữ liệu mới nhất
       queryClient.invalidateQueries({ queryKey: stockKeys.lists() });
       queryClient.invalidateQueries({
         queryKey: stockKeys.detail(variables.maCP),
       });
-      queryClient.invalidateQueries({ queryKey: ["admin", "undo-logs"] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'undo-logs'] });
       // Hoặc cập nhật cache trực tiếp
       // queryClient.setQueryData(stockKeys.detail(variables.maCP), updatedStock);
     },
     onError: (error: any) => {
-      console.error("Update stock failed:", error);
+      console.error('Update stock failed:', error);
       // Hiển thị lỗi
     },
   });
@@ -180,18 +180,18 @@ export const useDeleteStockMutation = () => {
   return useMutation<{ message: string }, Error, { maCP: string }>({
     mutationFn: ({ maCP }) => StockService.deleteStock(maCP),
     onSuccess: (data, variables) => {
-      console.log("Stock deleted:", variables.maCP, data.message);
+      console.log('Stock deleted:', variables.maCP, data.message);
       // Vô hiệu hóa cả danh sách và chi tiết
       queryClient.invalidateQueries({ queryKey: stockKeys.lists() });
       queryClient.invalidateQueries({
         queryKey: stockKeys.detail(variables.maCP),
       });
-      queryClient.invalidateQueries({ queryKey: ["admin", "undo-logs"] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'undo-logs'] });
       // Hoặc xóa cache chi tiết
       // queryClient.removeQueries({ queryKey: stockKeys.detail(variables.maCP) });
     },
     onError: (error: any) => {
-      console.error("Delete stock failed:", error);
+      console.error('Delete stock failed:', error);
       // Hiển thị lỗi
     },
   });
@@ -217,7 +217,7 @@ export const useDelistStockMutation = () => {
   return useMutation<CoPhieu, Error, { maCP: string }>({
     mutationFn: ({ maCP }) => StockService.delistStock(maCP),
     onSuccess: (delistedStock, variables) => {
-      console.log("Stock delisted:", delistedStock);
+      console.log('Stock delisted:', delistedStock);
       // Vô hiệu hóa cả danh sách và chi tiết để đảm bảo dữ liệu mới nhất
       queryClient.invalidateQueries({ queryKey: stockKeys.lists() });
       queryClient.invalidateQueries({
@@ -225,10 +225,10 @@ export const useDelistStockMutation = () => {
       });
       // Hoặc cập nhật cache trực tiếp nếu cần
       queryClient.setQueryData(stockKeys.detail(variables.maCP), delistedStock);
-      queryClient.invalidateQueries({ queryKey: ["admin", "undo-logs"] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'undo-logs'] });
     },
     onError: (error: any) => {
-      console.error("Delist stock failed:", error);
+      console.error('Delist stock failed:', error);
       // Hiển thị lỗi
     },
   });
@@ -244,7 +244,7 @@ export const useListStockMutation = () => {
     mutationFn: ({ maCP, initialGiaTC }) =>
       StockService.listStock(maCP, initialGiaTC),
     onSuccess: (listedStock, variables) => {
-      console.log("Stock listed:", listedStock);
+      console.log('Stock listed:', listedStock);
       // Vô hiệu hóa cả danh sách và chi tiết để đảm bảo dữ liệu mới nhất
       queryClient.invalidateQueries({ queryKey: stockKeys.lists() });
       queryClient.invalidateQueries({
@@ -252,10 +252,10 @@ export const useListStockMutation = () => {
       });
       // Hoặc cập nhật cache trực tiếp nếu cần
       queryClient.setQueryData(stockKeys.detail(variables.maCP), listedStock);
-      queryClient.invalidateQueries({ queryKey: ["admin", "undo-logs"] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'undo-logs'] });
     },
     onError: (error: any) => {
-      console.error("List stock failed:", error);
+      console.error('List stock failed:', error);
       // Hiển thị lỗi
     },
   });
@@ -293,10 +293,10 @@ export const useListStockMutation = () => {
  */
 export const useGetStocksByStatusQuery = (status: number | undefined) => {
   return useQuery<CoPhieu[], Error>({
-    queryKey: ["stocks", "status", status],
+    queryKey: ['stocks', 'status', status],
     queryFn: () => {
       if (status == null) {
-        return Promise.reject(new Error("Trạng thái là bắt buộc"));
+        return Promise.reject(new Error('Trạng thái là bắt buộc'));
       }
       return StockService.getStocksByStatus(status);
     },
@@ -314,7 +314,7 @@ export const useUndoLastActionMutation = () => {
   return useMutation<any, Error, void>({
     mutationFn: () => AdminService.undoLastCoPhieuAction(),
     onSuccess: (revertedStock) => {
-      console.log("Last action undone for stock:", revertedStock);
+      console.log('Last action undone for stock:', revertedStock);
       // Vô hiệu hóa cả danh sách và chi tiết để đảm bảo dữ liệu mới nhất
       queryClient.invalidateQueries({ queryKey: stockKeys.lists() });
       if (revertedStock.MaCP) {
@@ -329,7 +329,7 @@ export const useUndoLastActionMutation = () => {
       }
     },
     onError: (error: any) => {
-      console.error("Undo last action failed:", error);
+      console.error('Undo last action failed:', error);
       // Hiển thị lỗi
     },
   });
@@ -341,9 +341,9 @@ export const useUndoLastActionMutation = () => {
  */
 export const useGetLatestUndoInfoQuery = (maCP: string | undefined) => {
   return useQuery<{ action: string; timestamp: string }, Error>({
-    queryKey: ["stocks", "undo-info", maCP],
+    queryKey: ['stocks', 'undo-info', maCP],
     queryFn: () => {
-      if (!maCP) return Promise.reject(new Error("Mã CP là bắt buộc"));
+      if (!maCP) return Promise.reject(new Error('Mã CP là bắt buộc'));
       return StockService.getLatestUndoInfo(maCP);
     },
     enabled: !!maCP, // Chỉ chạy query khi maCP có giá trị
@@ -356,7 +356,7 @@ export const useGetLatestUndoInfoQuery = (maCP: string | undefined) => {
  */
 export const useGetAllUndoLogsQuery = (enabled: boolean = true) => {
   return useQuery<any[], Error>({
-    queryKey: ["admin", "undo-logs"],
+    queryKey: ['admin', 'undo-logs'],
     queryFn: () => AdminService.getAllUndoLogs(),
     staleTime: 1000 * 60 * 10, // Dữ liệu ít thay đổi (10 phút)
     enabled, // Chỉ chạy query khi enabled là true
@@ -364,38 +364,68 @@ export const useGetAllUndoLogsQuery = (enabled: boolean = true) => {
 };
 
 /**
- * Hook để lấy lịch sử giá chi tiết của một mã cổ phiếu.
+ * Hook để lấy dữ liệu lịch sử giá của một cổ phiếu để vẽ biểu đồ.
  * @param maCP Mã cổ phiếu.
- * @param tuNgay Ngày bắt đầu (YYYY-MM-DD).
- * @param denNgay Ngày kết thúc (YYYY-MM-DD).
+ * @param params Các tham số truy vấn như resolution, from, to.
  */
-export const useGetStockPriceHistoryQuery = (
+export const useGetStockPriceHistoryForChartQuery = (
   maCP: string | undefined,
-  tuNgay: string | undefined,
-  denNgay: string | undefined
+  params: { resolution: string; from: number; to: number } | undefined
 ) => {
-  const isValid = !!maCP && !!tuNgay && !!denNgay;
-  const range = { tuNgay, denNgay };
-  return useQuery<any, APIError>({
-    // Key bao gồm mã CP và khoảng ngày
-    queryKey: [...stockKeys.history(maCP), range],
+  const isValid =
+    !!maCP && !!params?.resolution && !!params.from && !!params.to;
+  return useQuery<any[], APIError>({
+    queryKey: ['stocks', 'price-history-chart', maCP, params],
     queryFn: () => {
-      if (!isValid)
+      if (!isValid) {
         return Promise.reject(
-          new APIError("Mã CP, Ngày bắt đầu, Ngày kết thúc là bắt buộc", 400)
+          new APIError('Mã CP và tham số truy vấn là bắt buộc', 400)
         );
-      // Ép kiểu vì đã kiểm tra isValid
-      return StockService.getStockPriceHistory(
+      }
+      // Gọi hàm service mới (bạn cần import getStockPriceHistory từ service)
+      return MarketService.getStockPriceHistory(
         maCP as string,
-        tuNgay as string,
-        denNgay as string
+        params as { resolution: string; from: number; to: number }
       );
     },
-    enabled: isValid, // Chỉ chạy khi đủ tham số
-    staleTime: 1000 * 60 * 60, // Dữ liệu lịch sử thường không đổi -> staleTime dài (1 giờ)
-    // Cache cũng có thể giữ lâu hơn (2 giờ)
+    enabled: isValid,
+    staleTime: 1000 * 60 * 10, // Dữ liệu lịch sử thường không đổi nhanh (10 phút)
   });
 };
+
+// /**
+//  * Hook để lấy lịch sử giá chi tiết của một mã cổ phiếu.
+//  * @param maCP Mã cổ phiếu.
+//  * @param tuNgay Ngày bắt đầu (YYYY-MM-DD).
+//  * @param denNgay Ngày kết thúc (YYYY-MM-DD).
+//  */
+// export const useGetStockPriceHistoryQuery = (
+//   maCP: string | undefined,
+//   tuNgay: string | undefined,
+//   denNgay: string | undefined
+// ) => {
+//   const isValid = !!maCP && !!tuNgay && !!denNgay;
+//   const range = { tuNgay, denNgay };
+//   return useQuery<any, APIError>({
+//     // Key bao gồm mã CP và khoảng ngày
+//     queryKey: [...stockKeys.history(maCP), range],
+//     queryFn: () => {
+//       if (!isValid)
+//         return Promise.reject(
+//           new APIError('Mã CP, Ngày bắt đầu, Ngày kết thúc là bắt buộc', 400)
+//         );
+//       // Ép kiểu vì đã kiểm tra isValid
+//       return StockService.getStockPriceHistory(
+//         maCP as string,
+//         tuNgay as string,
+//         denNgay as string
+//       );
+//     },
+//     enabled: isValid, // Chỉ chạy khi đủ tham số
+//     staleTime: 1000 * 60 * 60, // Dữ liệu lịch sử thường không đổi -> staleTime dài (1 giờ)
+//     // Cache cũng có thể giữ lâu hơn (2 giờ)
+//   });
+// };
 
 /**
  * Hook để lấy dữ liệu thị trường chi tiết của một mã cổ phiếu.
@@ -405,7 +435,7 @@ export const useGetStockMarketDataQuery = (maCP: string | undefined) => {
   return useQuery<any, APIError>({
     queryKey: marketKeys.stockDetail(maCP), // <<< Dùng key mới
     queryFn: () => {
-      if (!maCP) return Promise.reject(new APIError("Mã CP là bắt buộc", 400));
+      if (!maCP) return Promise.reject(new APIError('Mã CP là bắt buộc', 400));
       return MarketService.getStockMarketData(maCP); // <<< Gọi service mới
     },
     enabled: !!maCP, // Chỉ chạy khi có maCP
@@ -423,9 +453,9 @@ export const useGetTotalDistributedQuantityQuery = (
   maCP: string | undefined
 ) => {
   return useQuery<{ totalDistributed: number }, APIError>({
-    queryKey: ["stocks", "distributed-quantity", maCP],
+    queryKey: ['stocks', 'distributed-quantity', maCP],
     queryFn: () => {
-      if (!maCP) return Promise.reject(new APIError("Mã CP là bắt buộc", 400));
+      if (!maCP) return Promise.reject(new APIError('Mã CP là bắt buộc', 400));
       return StockService.getTotalDistributedQuantity(maCP);
     },
     enabled: !!maCP, // Chỉ chạy query khi maCP có giá trị
@@ -439,7 +469,7 @@ export const useGetShareholdersQuery = (maCP: string | undefined) => {
   return useQuery<ShareholdersResponse, APIError>({
     queryKey: stockKeys.shareholders(maCP), // <<< Dùng key mới
     queryFn: () => {
-      if (!maCP) return Promise.reject(new APIError("Mã CP là bắt buộc", 400));
+      if (!maCP) return Promise.reject(new APIError('Mã CP là bắt buộc', 400));
       return StockService.getShareholders(maCP); // <<< Gọi service mới
     },
     enabled: !!maCP, // Chỉ chạy khi có maCP

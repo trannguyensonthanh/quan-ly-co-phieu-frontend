@@ -1,28 +1,28 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { mockStocks } from "@/utils/mock-data";
-import { Stock } from "@/utils/types";
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { mockStocks } from '@/utils/mock-data';
+import { Stock } from '@/utils/types';
 import {
   formatCurrency,
   formatNumber,
   formatPriceChange,
   getPriceChangeClass,
-} from "@/utils/format";
+} from '@/utils/format';
 import {
   ArrowDownIcon,
   ArrowLeftIcon,
   ArrowUpIcon,
   ShoppingBag,
-} from "lucide-react";
+} from 'lucide-react';
 import {
   AreaChart,
   Area,
@@ -31,8 +31,8 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-} from "recharts";
-import { useGetStockMarketDataQuery } from "@/queries/stock.queries";
+} from 'recharts';
+import { useGetStockMarketDataQuery } from '@/queries/stock.queries';
 
 const StockDetail = () => {
   const { stockCode } = useParams<{ stockCode: string }>();
@@ -76,7 +76,7 @@ const StockDetail = () => {
       lastPrice = price;
 
       data.push({
-        date: date.toISOString().split("T")[0],
+        date: date.toISOString().split('T')[0],
         price: Math.round(price * 100) / 100,
         volume: Math.floor(Math.random() * 1000000) + 500000,
       });
@@ -90,7 +90,7 @@ const StockDetail = () => {
   };
 
   const goToTradingPage = () => {
-    navigate("/trading", { state: { stockCode: stockMarketData?.MaCP } });
+    navigate('/trading', { state: { stockCode: stockMarketData?.MaCP } });
   };
 
   if (!stockMarketData) {
@@ -152,13 +152,13 @@ const StockDetail = () => {
                     }}
                   />
                   <YAxis
-                    domain={["auto", "auto"]}
+                    domain={['auto', 'auto']}
                     tickFormatter={(value) => formatCurrency(value)}
                   />
                   <Tooltip
                     formatter={(value: number) => [
                       formatCurrency(value),
-                      "Giá",
+                      'Giá',
                     ]}
                     labelFormatter={(label) => {
                       const date = new Date(label);

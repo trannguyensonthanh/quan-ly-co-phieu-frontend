@@ -1,9 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // src/services/stock.service.ts
-import TokenService from "@/services/token.service";
-import apiHelper from "./apiHelper";
+import TokenService from '@/services/token.service';
+import apiHelper from './apiHelper';
 
-const API_URL = "/cophieu";
+const API_URL = '/cophieu';
 
 // Định nghĩa kiểu dữ liệu cho Cổ phiếu (khớp model backend)
 export interface CoPhieu {
@@ -26,17 +25,17 @@ export interface ShareholderInfo {
 export type ShareholdersResponse = ShareholderInfo[];
 
 // Kiểu dữ liệu để tạo mới cổ phiếu
-export type CreateCoPhieuPayload = Omit<CoPhieu, "">; // Có thể dùng thẳng CoPhieu
+export type CreateCoPhieuPayload = Omit<CoPhieu, ''>; // Có thể dùng thẳng CoPhieu
 
 // Kiểu dữ liệu để cập nhật cổ phiếu (không có MaCP)
-export type UpdateCoPhieuPayload = Omit<CoPhieu, "MaCP">;
+export type UpdateCoPhieuPayload = Omit<CoPhieu, 'MaCP'>;
 
 // Kiểu dữ liệu trả về từ API lấy sao kê lệnh CP
 interface StockOrderStatementItem {
   MaGD: number;
   NgayGD: string | Date;
-  LoaiGD: "M" | "B";
-  LoaiLenh: "LO" | "ATO" | "ATC";
+  LoaiGD: 'M' | 'B';
+  LoaiLenh: 'LO' | 'ATO' | 'ATC';
   SoLuongDat: number;
   GiaDat: number;
   MaTK: string;
@@ -61,7 +60,7 @@ const getAllStocks = (): Promise<CoPhieu[]> => {
  */
 const getStockById = (maCP: string): Promise<CoPhieu> => {
   const token = TokenService.getLocalAccessToken();
-  if (!maCP) return Promise.reject(new Error("Mã CP là bắt buộc"));
+  if (!maCP) return Promise.reject(new Error('Mã CP là bắt buộc'));
 
   return apiHelper.get(`${API_URL}/${maCP}`, token);
 };
@@ -85,7 +84,7 @@ const updateStock = (
   stockData: UpdateCoPhieuPayload
 ): Promise<CoPhieu> => {
   const token = TokenService.getLocalAccessToken();
-  if (!maCP) return Promise.reject(new Error("Mã CP là bắt buộc"));
+  if (!maCP) return Promise.reject(new Error('Mã CP là bắt buộc'));
   return apiHelper.put(`${API_URL}/${maCP}`, stockData, token);
 };
 
@@ -95,7 +94,7 @@ const updateStock = (
  */
 const deleteStock = (maCP: string): Promise<{ message: string }> => {
   const token = TokenService.getLocalAccessToken();
-  if (!maCP) return Promise.reject(new Error("Mã CP là bắt buộc"));
+  if (!maCP) return Promise.reject(new Error('Mã CP là bắt buộc'));
   // Kiểu trả về có thể chỉ là message { message: '...' }
   return apiHelper.delete(`${API_URL}/${maCP}`, token);
 };
@@ -114,7 +113,7 @@ const getStockOrders = (
   const token = TokenService.getLocalAccessToken();
   if (!maCP || !tuNgay || !denNgay)
     return Promise.reject(
-      new Error("Mã CP, Ngày bắt đầu, Ngày kết thúc là bắt buộc")
+      new Error('Mã CP, Ngày bắt đầu, Ngày kết thúc là bắt buộc')
     );
   const params = { tuNgay, denNgay };
   return apiHelper.get(`${API_URL}/${maCP}/orders`, token, params);
@@ -135,7 +134,7 @@ const getAllStocksForAdmin = (): Promise<CoPhieu[]> => {
 const getStocksByStatus = (status: number): Promise<CoPhieu[]> => {
   const token = TokenService.getLocalAccessToken();
   if (status == null)
-    return Promise.reject(new Error("Trạng thái là bắt buộc"));
+    return Promise.reject(new Error('Trạng thái là bắt buộc'));
   return apiHelper.get(`${API_URL}/status/${status}`, token);
 };
 
@@ -145,7 +144,7 @@ const getStocksByStatus = (status: number): Promise<CoPhieu[]> => {
  */
 const delistStock = (maCP: string): Promise<CoPhieu> => {
   const token = TokenService.getLocalAccessToken();
-  if (!maCP) return Promise.reject(new Error("Mã CP là bắt buộc"));
+  if (!maCP) return Promise.reject(new Error('Mã CP là bắt buộc'));
   return apiHelper.put(`${API_URL}/${maCP}/delist`, {}, token);
 };
 
@@ -166,10 +165,10 @@ const delistStock = (maCP: string): Promise<CoPhieu> => {
  */
 const listStock = (maCP: string, initialGiaTC: number): Promise<CoPhieu> => {
   const token = TokenService.getLocalAccessToken();
-  console.log("listStock", maCP, initialGiaTC);
+  console.log('listStock', maCP, initialGiaTC);
   if (!maCP || initialGiaTC == null)
     return Promise.reject(
-      new Error("Mã CP và Giá tham chiếu ban đầu là bắt buộc")
+      new Error('Mã CP và Giá tham chiếu ban đầu là bắt buộc')
     );
   return apiHelper.put(`${API_URL}/${maCP}/list`, { initialGiaTC }, token);
 };
@@ -182,30 +181,30 @@ const getLatestUndoInfo = (
   maCP: string
 ): Promise<{ action: string; timestamp: string }> => {
   const token = TokenService.getLocalAccessToken();
-  if (!maCP) return Promise.reject(new Error("Mã CP là bắt buộc"));
+  if (!maCP) return Promise.reject(new Error('Mã CP là bắt buộc'));
   return apiHelper.get(`${API_URL}/${maCP}/undo-info`, token);
 };
 
-/**
- * Lấy lịch sử giá chi tiết của một mã cổ phiếu.
- * @param maCP Mã cổ phiếu.
- * @param tuNgay Ngày bắt đầu (YYYY-MM-DD).
- * @param denNgay Ngày kết thúc (YYYY-MM-DD).
- */
-const getStockPriceHistory = (
-  maCP: string,
-  tuNgay: string,
-  denNgay: string
-): Promise<any> => {
-  if (!maCP || !tuNgay || !denNgay)
-    return Promise.reject(
-      new Error("Mã CP, Ngày bắt đầu, Ngày kết thúc là bắt buộc")
-    );
-  const params = { tuNgay, denNgay };
-  const token = TokenService.getLocalAccessToken();
-  // Dùng apiHelper vì cần đăng nhập
-  return apiHelper.get(`${API_URL}/${maCP}/history`, token, params);
-};
+// /**
+//  * Lấy lịch sử giá chi tiết của một mã cổ phiếu.
+//  * @param maCP Mã cổ phiếu.
+//  * @param tuNgay Ngày bắt đầu (YYYY-MM-DD).
+//  * @param denNgay Ngày kết thúc (YYYY-MM-DD).
+//  */
+// const getStockPriceHistory = (
+//   maCP: string,
+//   tuNgay: string,
+//   denNgay: string
+// ): Promise<any> => {
+//   if (!maCP || !tuNgay || !denNgay)
+//     return Promise.reject(
+//       new Error("Mã CP, Ngày bắt đầu, Ngày kết thúc là bắt buộc")
+//     );
+//   const params = { tuNgay, denNgay };
+//   const token = TokenService.getLocalAccessToken();
+//   // Dùng apiHelper vì cần đăng nhập
+//   return apiHelper.get(`${API_URL}/${maCP}/history`, token, params);
+// };
 
 /**
  * Lấy tổng số lượng đã phân bổ của một mã cổ phiếu.
@@ -215,14 +214,14 @@ const getTotalDistributedQuantity = (
   maCP: string
 ): Promise<{ totalDistributed: number }> => {
   const token = TokenService.getLocalAccessToken();
-  if (!maCP) return Promise.reject(new Error("Mã CP là bắt buộc"));
+  if (!maCP) return Promise.reject(new Error('Mã CP là bắt buộc'));
   return apiHelper.get(`${API_URL}/${maCP}/distributed-quantity`, token);
 };
 
 /** Lấy danh sách cổ đông của một mã cổ phiếu */
 const getShareholders = (maCP: string): Promise<ShareholdersResponse> => {
   const token = TokenService.getLocalAccessToken();
-  if (!maCP) return Promise.reject(new Error("Mã CP là bắt buộc"));
+  if (!maCP) return Promise.reject(new Error('Mã CP là bắt buộc'));
   return apiHelper.get(`${API_URL}/${maCP}/shareholders`, token);
 };
 
@@ -240,7 +239,7 @@ const StockService = {
   listStock,
   // openStock,
   getLatestUndoInfo,
-  getStockPriceHistory,
+  // getStockPriceHistory,
   getTotalDistributedQuantity,
   getShareholders,
 };

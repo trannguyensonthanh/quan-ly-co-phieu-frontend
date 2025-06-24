@@ -60,6 +60,24 @@ const DetailedPriceBoardModal = ({ stocks }: Props) => {
     };
   };
 
+  // Cột giá khớp lệnh: style đẹp cho cả dark/light
+  const getPriceCellClass = (
+    currentPrice: number,
+    referencePrice: number,
+    isCeiling: boolean,
+    isFloor: boolean
+  ) => {
+    if (isCeiling)
+      return 'text-purple-600 bg-purple-50 dark:text-purple-300 dark:bg-purple-950';
+    if (isFloor)
+      return 'text-sky-600 bg-sky-50 dark:text-sky-300 dark:bg-sky-950';
+    if (currentPrice > referencePrice)
+      return 'text-green-600 bg-green-50 dark:text-green-300 dark:bg-green-950';
+    if (currentPrice < referencePrice)
+      return 'text-red-600 bg-red-50 dark:text-red-300 dark:bg-red-950';
+    return 'text-amber-600 bg-amber-50 dark:text-amber-300 dark:bg-amber-950';
+  };
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -183,9 +201,13 @@ const DetailedPriceBoardModal = ({ stocks }: Props) => {
                     {/* Matched order */}
                     <TableCell
                       className={cn(
-                        'text-right font-semibold',
-                        priceColor,
-                        priceBgColor
+                        'text-right font-semibold rounded transition-colors duration-200',
+                        getPriceCellClass(
+                          stock.GiaKhopCuoi || 0,
+                          stock.GiaTC,
+                          isCeiling,
+                          isFloor
+                        )
                       )}
                     >
                       {displayValue(stock.GiaKhopCuoi)}
